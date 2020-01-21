@@ -13,10 +13,10 @@ public static class GenCPP_Class
 #include""" + templateName + @"_class.inc""
 ");
     }
-    static void GenH_IncludeEnd(this StringBuilder sb, List<Type> cs, string templateName)
+    static void GenH_IncludeEnd(this StringBuilder sb, List<Type> cs, string templateName, TemplateLibrary.Filter<TemplateLibrary.CppFilter> filter)
     {
         sb.Append(@"
-#include ""xx_random.hpp""");
+#include """ + templateName + "_class_end" + (filter != null ? "_filter" : "") + ".inc" + @"""");
     }
 
     static void GenH_RootNamespace(this StringBuilder sb, string templateName)
@@ -132,6 +132,12 @@ namespace " + e.Namespace.Replace(".", "::") + @" {");
 
     static void GenH_Class_Fields(StringBuilder sb, Type c, string templateName, object o)
     {
+        if (c._Has<TemplateLibrary.AttachInclude>())
+        {
+            sb.Append(@"
+#include""" + c._GetTypeDecl_Lua(templateName) + @".inc""");
+        }
+
         var fs = c._GetFieldsConsts();
         foreach (var f in fs)
         {
@@ -157,12 +163,6 @@ namespace " + e.Namespace.Replace(".", "::") + @" {");
                     sb.Append(";");
                 }
             }
-        }
-
-        if (c._Has<TemplateLibrary.AttachInclude>())
-        {
-            sb.Append(@"
-#include""" + c._GetTypeDecl_Lua(templateName) + @".inc""");
         }
     }
 
@@ -264,7 +264,11 @@ namespace xx {");
 
     static void GenCPP_Include(this StringBuilder sb, string templateName, TemplateLibrary.Filter<TemplateLibrary.CppFilter> filter, List<Type> cs)
     {
-        sb.Append(@"#include """ + templateName + "_class" + (filter != null ? "_filter" : "") + ".h" + @"""");
+        sb.Append(@"#include """ + templateName + "_class" + (filter != null ? "_filter" : "") + ".h" + @"""
+#ifdef NEED_INCLUDE_"+ templateName + @"_class" + (filter != null ? "_filter" : "") + "_hpp" + @"
+#include """ + templateName + "_class" + (filter != null ? "_filter" : "") + ".hpp" + @"""
+#endif
+");
         foreach (var c in cs)
         {
             if (c._Has<TemplateLibrary.AttachInclude>())
@@ -654,6 +658,11 @@ namespace " + templateName + @" {
 #include ""xx_dict.h""
 ");
     }
+    static void GenIncEnd(this StringBuilder sb)
+    {
+        sb.Append(@"#include ""xx_random.hpp""
+");
+    }
 
 
 
@@ -676,7 +685,7 @@ namespace " + templateName + @" {
         sb.GenH_ClassAndStruct(cs, templateName, filter, asm);
         sb.GenH_RootNamespaceEnd();
         sb.GenH_StructTemplates(cs, typeIds, filter, templateName);
-        sb.GenH_IncludeEnd(cs, templateName);
+        sb.GenH_IncludeEnd(cs, templateName, filter);
         sb._WriteToFile(Path.Combine(outDir, templateName + "_class" + (filter != null ? "_filter" : "") + ".h"));
 
         // 生成 .cpp
@@ -687,10 +696,15 @@ namespace " + templateName + @" {
         sb.GenCpp_Registers(templateName, filter, typeIds);
         sb._WriteToFile(Path.Combine(outDir, templateName + "_class" + (filter != null ? "_filter" : "") + ".cpp"));
 
-        // 生成 .inc
+        // 生成 .inc, hpp
         sb.Clear();
         sb.GenInc();
         sb._WriteToFile(Path.Combine(outDir, templateName + "_class" + (filter != null ? "_filter" : "") + ".inc"));
+        sb.Clear();
+        sb.GenIncEnd();
+        sb._WriteToFile(Path.Combine(outDir, templateName + "_class_end" + (filter != null ? "_filter" : "") + ".inc"));
+        sb.Clear();
+        sb._WriteToFile(Path.Combine(outDir, templateName + "_class" + (filter != null ? "_filter" : "") + ".hpp"));
 
 
         // 生成 里面的类.inc .hpp

@@ -50,6 +50,7 @@
   <ItemGroup>
     <None Include="gen_pkg.bat" />
     <None Include="PKG_class.inc" />
+    <None Include="PKG_class_end.inc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PKG_class.h" />

@@ -3,7 +3,7 @@
 
 namespace PKG {
 	struct PkgGenMd5 {
-		inline static const std::string value = "#*MD5<c08b4d136757ae33561c395c4e7619fa>*#";
+		inline static const std::string value = "#*MD5<d6a2eca45e6f389e1a230e898334ad68>*#";
     };
 	struct AllTypesRegister {
         AllTypesRegister();
@@ -96,4 +96,4 @@ namespace xx {
     template<> struct TypeId<::PKG::Bar> { static const uint16_t value = 13002; };
     template<> struct TypeId<::PKG::Node> { static const uint16_t value = 13003; };
 }
-#include "xx_random.hpp"
+#include "PKG_class_end.inc"

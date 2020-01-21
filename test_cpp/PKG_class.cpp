@@ -1,4 +1,8 @@
 ﻿#include "PKG_class.h"
+#ifdef NEED_INCLUDE_PKG_class_hpp
+#include "PKG_class.hpp"
+#endif
+
 
 namespace xx {
 	void BFuncs<::PKG::TestNamespace::A, void>::Write(BBuffer& bb, ::PKG::TestNamespace::A const& in) noexcept {
