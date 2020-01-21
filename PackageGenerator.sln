@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29215.179
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pkggen", "PackageGenerator\pkggen\pkggen.csproj", "{6F49DE2C-1F92-47C8-B03D-D3D5C66D3CBC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "gen_library", "PackageGenerator\gen_library\gen_library.csproj", "{7F62E40F-E079-46D2-85E9-661FCE50168C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6F49DE2C-1F92-47C8-B03D-D3D5C66D3CBC}.Debug|x64.ActiveCfg = Debug|x64
+		{6F49DE2C-1F92-47C8-B03D-D3D5C66D3CBC}.Debug|x64.Build.0 = Debug|x64
+		{6F49DE2C-1F92-47C8-B03D-D3D5C66D3CBC}.Release|x64.ActiveCfg = Release|x64
+		{6F49DE2C-1F92-47C8-B03D-D3D5C66D3CBC}.Release|x64.Build.0 = Release|x64
+		{7F62E40F-E079-46D2-85E9-661FCE50168C}.Debug|x64.ActiveCfg = Debug|x64
+		{7F62E40F-E079-46D2-85E9-661FCE50168C}.Debug|x64.Build.0 = Debug|x64
+		{7F62E40F-E079-46D2-85E9-661FCE50168C}.Release|x64.ActiveCfg = Release|x64
+		{7F62E40F-E079-46D2-85E9-661FCE50168C}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7492F0EE-66DD-4392-BD43-4B65DDD29BA4}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Globals">
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <ItemsProjectGuid>{4b57e4bc-5558-4de6-b4da-4490f8c1e34a}</ItemsProjectGuid>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectCapability Include="SourceItemsFromImports" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)ajson.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)fixed_function.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)http_parser.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ikcp.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_astar.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_epoll2_http.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_epoll2_tcp_ex.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_itempool.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_bbuffer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_coros_boost.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_dict.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_epoll.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_buf.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_buf_queue.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_epoll2.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_epoll2.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_file.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_http.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_list.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_logger.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_mempool.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_mysql.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_object.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_pos.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_queue.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_random.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_random.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_epoll_http.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_sqlite.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_threadpool.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_threadpool_ex.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_timeout.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_uv.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_uv_ext.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_uv_http.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)http_parser.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ikcp.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="$(MSBuildThisFileDirectory)lua.natvis" />
+    <Natvis Include="$(MSBuildThisFileDirectory)xx.natvis" />
+  </ItemGroup>
+</Project>

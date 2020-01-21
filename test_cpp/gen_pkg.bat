@@ -1,0 +1,1 @@
+..\PackageGenerator\pkggen\bin\x64\Debug\pkggen.exe 5 PKG .\ ..\test_cpp_pkg\
