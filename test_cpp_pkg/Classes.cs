@@ -7,7 +7,7 @@ using TemplateLibrary;
 // 发送只能直接发 class. 不管是 shared_ptr<class> 还是 class 值类型，以同样的编码格式发送
 // 接收时统统认为是 shared_ptr<class>.
 // 不可写 Shared<struct> 或 Weak<struct>.
-// List 是 struct / 值类型
+// List, string, BBuffer 是 struct / 值类型
 // todo: 生成时的合法性检测
 // 不标记 Shared<> 或 Weak<> 默认都认为是值类型方式使用
 // 值类型使用模式下，没有 typeId. 只能存放本体，不可以存放派生类
