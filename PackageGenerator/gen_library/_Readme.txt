@@ -4,9 +4,9 @@
 可用数据类型 / 关键字:
 *******************************************************
 
-enum                                     // 枚举
-class                                    // 类
 struct                                   // 结构体
+class                                    // 类( 可加 [Struct] 当作 struct 生成 )
+enum                                     // 枚举( 可 : 指定数据类型 )
 
 sbyte                                    // 数值类型
 byte                                     // 
@@ -25,17 +25,19 @@ double                                   //
                                          // 
 bool                                     // 
 
-string                                   // 文本容器( 编码后形态为 utf8 )
+string                                   // 文本容器( 编码后形态为 utf8 ). C++: 对应 std::string. C# & Lua: 对应 string, 逻辑不可空
 
-BBuffer                                  // 二进制容器
+BBuffer                                  // 二进制容器. C++: 对应 std::vector<T>. C#: 对应 System.Collections.Generic.List<T>, 逻辑不可空. Lua: 对应 table, 逻辑不可空
 
-List<T>                                  // 变长容器, 可多层
-Nullable<T>, ?                           // 可空值类型. 可套在上面这些类型上, 以及 class & struct. ?写法主要针对 数值类型.
+Nullable<T>, ?                           // 可空标志. 值类型. 可套在上面这些类型上, 以及 class & struct. ?写法主要针对 数值类型. C++: 对应 std::optional<>. C#: string, class 本来就可空. 其他对应 Nullable<>. Lua: 忽略( 本来就可空 )
 
-Shared<T>                                // C++ only: 对应 std::shared_ptr<class>
-Weak<T>                                  // C++ only: 对应 std::weak_ptr<class>
-Unique<T>                                // C++ only: 对应 std::unique_ptr<class>
-object                                   // C++: 对应 std::shared_ptr<xx::Object>. C#: 对应 xx.Object 或 IObject. Lua: table
+Shared<T>                                // C++: 对应 std::shared_ptr<class>. C#, Lua: 忽略( 默认就是这种模式 )
+Weak<T>                                  // C++: 对应 std::weak_ptr<class>. C#, Lua: 忽略( 通常需要在 class 中添加 disposed 等失效判定字段 以避免因生命周期延长导致的问题 )
+Unique<T>                                // C++: 对应 std::unique_ptr<class>. C#, Lua: 忽略( 通常需要模拟 Disposed 机制和失效判定来实现类似效果 以避免因生命周期延长导致的问题 )
+
+object                                   // 可承载任意 class( xx.Object 基类 ), 用于上面 3 种引用类型的 T. 直接写 object 仅针对 C#, Lua 有效.
+
+List<T>                                  // 变长容器, 可多层. T 可以是上述所有类型之一. C++: 对应 std::vector<T>. C#: 对应 System.Collections.Generic.List<T>. Lua: 对应 table
 
 *******************************************************
 [标记]
