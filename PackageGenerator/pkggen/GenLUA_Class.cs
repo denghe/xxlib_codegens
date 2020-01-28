@@ -12,7 +12,7 @@ public static class GenLUA_Class
         var sb = new StringBuilder();
 
         sb.Append(@"
-" + templateName + @"_PkgGenMd5_Value = '" + GenUtils.MD5PlaceHolder + @"'
+" + templateName + @"_PkgGenMd5_Value = '" + StringHelpers.MD5PlaceHolder + @"'
 ");
         var ts = asm._GetTypes();
         var es = ts._GetEnums();

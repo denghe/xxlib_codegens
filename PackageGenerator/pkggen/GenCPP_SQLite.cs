@@ -235,6 +235,7 @@ namespace " + iface.Namespace + @" {");
                             var mn = m.Name;
                             var getfn = mt._GetDataReaderFuncName_Cpp(i);
 
+                            // todo: NotNull -> Nullable
                             sb.Append(@"
                 " + (mt._IsSqlNullable() && !m._Has<NotNull>() ? "if (!sr.IsDBNull(0)) " : "") + "r->" + mn + @" = " + getfn + @";");
                         }
@@ -280,6 +281,7 @@ namespace " + iface.Namespace + @" {");
                             var mn = m.Name;
                             var getfn = mt._GetDataReaderFuncName_Cpp(i);
 
+                            // todo: NotNull -> Nullable
                             sb.Append(@"
                 " + (mt._IsSqlNullable() && !m._Has<NotNull>() ? "if (!sr.IsDBNull(0)) " : "") + "rtv->" + mn + @" = " + getfn + @";");
                         }

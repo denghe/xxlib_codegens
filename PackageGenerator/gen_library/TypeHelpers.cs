@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Text;
 
 
-public static class GenExtensions
+public static class TypeHelpers
 {
 
     /// <summary>
@@ -1296,28 +1296,6 @@ public static class GenExtensions
     }
 
     /// <summary>
-    /// 获取 Attribute 之 Key. 未找到将返回 null
-    /// </summary>
-    public static bool? _GetKey(this ICustomAttributeProvider t)
-    {
-        foreach (var r_attribute in t.GetCustomAttributes(false))
-        {
-            if (r_attribute is TemplateLibrary.Key)
-                return ((TemplateLibrary.Key)r_attribute).value;
-        }
-        return false;
-    }
-
-
-    /// <summary>
-    /// 判断目标类型是否为数据包类
-    /// </summary>
-    public static bool _IsNotPackage(this Type t)
-    {
-        return t.GetCustomAttributes(false).Any(a => a is TemplateLibrary.IsNotPackage);
-    }
-
-    /// <summary>
     /// 判断目标类型是否为派生类
     /// </summary>
     public static bool _HasBaseType(this Type t)
@@ -1327,103 +1305,19 @@ public static class GenExtensions
     }
 
 
-    public static bool _HasDerivedTypes(this Type t, Assembly asm)
-    {
-        // todo: 过滤掉 非 package
-        return asm._GetTypes()._GetClasss().Any(a => t.IsAssignableFrom(a));
-    }
 
-    /// <summary>
-    /// 找出目标类型所有层次的派生类
-    /// </summary>
-    public static List<Type> _GetDerivedTypes(this Type t, Assembly asm)
-    {
-        // todo: 过滤掉 非 package
-        return asm._GetTypes()._GetClasss().Where(a => t.IsAssignableFrom(a)).ToList();
-    }
-
-
-
-
-
-
-
-    /// <summary>
-    /// 首字符转大写
-    /// </summary>
-    public static string _ToFirstUpper(this string s)
-    {
-        return s.Substring(0, 1).ToUpper() + s.Substring(1);
-    }
-    /// <summary>
-    /// 首字符转小写
-    /// </summary>
-    public static string _ToFirstLower(this string s)
-    {
-        return s.Substring(0, 1).ToLower() + s.Substring(1);
-    }
-
-    /// <summary>
-    /// 定位到数组最后一个元素
-    /// </summary>
-    public static T _Last<T>(this T[] a)
-    {
-        return a[a.Length - 1];
-    }
-
-    /// <summary>
-    /// 定位到集合最后一个元素
-    /// </summary>
-    public static T _Last<T>(this List<T> a)
-    {
-        return a[a.Count - 1];
-    }
-
-
-    /// <summary>
-    /// 以 utf8 格式写文本到文件, 可选择是否附加 bom 头.
-    /// </summary>
-    public static bool _Write(this string fn, StringBuilder sb, bool useBOM = true)
-    {
-        // 读旧文件内容
-        string oldTxt = null;
-        if (File.Exists(fn))
-        {
-            oldTxt = File.ReadAllText(fn);
-        }
-
-        // 算 md5 , 替换后对比
-        var txt = sb.ToString();
-        var md5 = GenUtils.GetMD5(txt);
-        txt = txt.Replace(GenUtils.MD5PlaceHolder, GenUtils.MD5PlaceHolder_Left + md5 + GenUtils.MD5PlaceHolder_Right);
-        if (oldTxt == txt)
-        {
-            Console.WriteLine("已跳过 " + fn);
-            return false;
-        }
-
-        // 新建或覆盖写入
-        using (var fs = File.Create(fn))
-        {
-            if (useBOM)
-            {
-                fs.Write(_bom, 0, _bom.Length);
-            }
-            var buf = Encoding.UTF8.GetBytes(txt);
-            fs.Write(buf, 0, buf.Length);
-            fs.Close();
-            Console.WriteLine("已生成 " + fn);
-            return true;
-        }
-    }
-
-    public static byte[] _bom = { 0xEF, 0xBB, 0xBF };
-
-    /// <summary>
-    /// 以 utf8 格式写文本到文件, 可选择是否附加 bom 头.
-    /// </summary>
-    public static bool _WriteToFile(this StringBuilder sb, string fn, bool useBOM = true)
-    {
-        return fn._Write(sb, useBOM);
-    }
 }
+
+
+///// <summary>
+///// 获取 Attribute 之 Key. 未找到将返回 null
+///// </summary>
+//public static bool? _GetKey(this ICustomAttributeProvider t)
+//{
+//    foreach (var r_attribute in t.GetCustomAttributes(false))
+//    {
+//        if (r_attribute is TemplateLibrary.Key)
+//            return ((TemplateLibrary.Key)r_attribute).value;
+//    }
+//    return false;
+//}

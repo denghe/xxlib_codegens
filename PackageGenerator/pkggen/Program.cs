@@ -99,7 +99,7 @@ public static class Program
         Assembly asm = null;
         try
         {
-            asm = GenUtils.GetAssembly(fileNames.ToArray());
+            asm = StringHelpers.GetAssembly(fileNames.ToArray());
         }
         catch (Exception ex)
         {

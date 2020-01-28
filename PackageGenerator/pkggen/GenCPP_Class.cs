@@ -35,7 +35,7 @@ namespace " + templateName + @" {");
     {
         sb.Append(@"
 	struct PkgGenMd5 {
-		inline static const std::string value = """ + GenUtils.MD5PlaceHolder + @""";
+		inline static const std::string value = """ + StringHelpers.MD5PlaceHolder + @""";
     };
 	struct AllTypesRegister {
         AllTypesRegister();
@@ -132,7 +132,7 @@ namespace " + e.Namespace.Replace(".", "::") + @" {");
 
     static void GenH_Class_Fields(StringBuilder sb, Type c, string templateName, object o)
     {
-        if (c._Has<TemplateLibrary.AttachInclude>())
+        if (c._Has<TemplateLibrary.Include>())
         {
             sb.Append(@"
 #include""" + c._GetTypeDecl_Lua(templateName) + @".inc""");
@@ -271,7 +271,7 @@ namespace xx {");
 ");
         foreach (var c in cs)
         {
-            if (c._Has<TemplateLibrary.AttachInclude>())
+            if (c._Has<TemplateLibrary.Include>())
             {
                 sb.Append(@"#include """ + c._GetTypeDecl_Lua(templateName) + @".hpp""
 ");
@@ -317,15 +317,9 @@ namespace xx {");
         {
             var ft = f.FieldType;
             if (ft._IsExternal() && !ft._GetExternalSerializable()) continue;
-            if (f._Has<TemplateLibrary.NotSerialize>())
+            if (f._Has<TemplateLibrary.Custom>())
             {
-                sb.Append(@"
-        bb.Write(decltype(" + cn + f.Name + ")());");
-            }
-            else if (f._Has<TemplateLibrary.CustomSerialize>())
-            {
-                //            sb.Append(@"
-                //bb.CustomWrite(bb, (void*)this, _offsetof(ThisType, " + f.Name + "));");
+                // todo: call custom func
                 throw new NotImplementedException();
             }
             else
@@ -583,27 +577,6 @@ namespace " + templateName + @" {");
 namespace " + c.Namespace.Replace(".", "::") + @" {");
             }
 
-            var ms = c._GetMethods();
-            foreach (var m in ms)
-            {
-                var ps = m.GetParameters();
-                var rt = m.ReturnType;
-                var rtn = rt._GetTypeDecl_Cpp(templateName, "_s");
-
-                sb.Append(@"
-    " + rtn + " " + c.Name + "::" + m.Name + "(");
-                foreach (var p in ps)
-                {
-                    string attr = " ";
-                    if (p._Has<TemplateLibrary.ConstRef>()) attr = " const& ";
-                    if (p._Has<TemplateLibrary.PointerConstRef>()) attr = "* const& ";
-
-                    sb.Append(p._GetDesc()._GetComment_Cpp(12) + @"
-            " + (p != ps[0] ? ", " : "") + p.ParameterType._GetTypeDecl_Cpp(templateName) + attr + p.Name);
-                }
-                sb.Append(") noexcept {" + (rtn != "void" ? (" return " + rtn + "(); ") : "") + "}");
-            }
-
             sb.Append(@"
     uint16_t " + c.Name + @"::GetTypeId() const noexcept {
         return " + typeIds.types[c] + @";
@@ -711,7 +684,7 @@ namespace " + templateName + @" {
         sb.Clear();
         foreach (var c in cs)
         {
-            if (c._Has<TemplateLibrary.AttachInclude>())
+            if (c._Has<TemplateLibrary.Include>())
             {
                 sb._WriteToFile(Path.Combine(outDir, c._GetTypeDecl_Lua(templateName) + ".inc"));
                 sb._WriteToFile(Path.Combine(outDir, c._GetTypeDecl_Lua(templateName) + ".hpp"));
@@ -741,3 +714,25 @@ namespace " + templateName + @" {
 //    }
 //    sb.Append(") noexcept;");
 //}
+
+
+//        var ms = c._GetMethods();
+//        foreach (var m in ms)
+//        {
+//            var ps = m.GetParameters();
+//            var rt = m.ReturnType;
+//            var rtn = rt._GetTypeDecl_Cpp(templateName, "_s");
+
+//            sb.Append(@"
+//" + rtn + " " + c.Name + "::" + m.Name + "(");
+//            foreach (var p in ps)
+//            {
+//                string attr = " ";
+//                if (p._Has<TemplateLibrary.ConstRef>()) attr = " const& ";
+//                if (p._Has<TemplateLibrary.PointerConstRef>()) attr = "* const& ";
+
+//                sb.Append(p._GetDesc()._GetComment_Cpp(12) + @"
+//        " + (p != ps[0] ? ", " : "") + p.ParameterType._GetTypeDecl_Cpp(templateName) + attr + p.Name);
+//            }
+//            sb.Append(") noexcept {" + (rtn != "void" ? (" return " + rtn + "(); ") : "") + "}");
+//        }

@@ -20,7 +20,7 @@ namespace " + templateName + @"
 {
     public static class PkgGenMd5
     {
-        public const string value = """ + GenUtils.MD5PlaceHolder + @"""; 
+        public const string value = """ + StringHelpers.MD5PlaceHolder + @"""; 
     }
 ");
 
@@ -116,10 +116,6 @@ namespace " + c.Namespace + @"
                 {
                     sb.Append(" = " + dv + ";");
                 }
-                //else if (f._Has<TemplateLibrary.CreateInstance>())
-                //{
-                //    sb.Append(" = new " + ftn + "();");
-                //}
                 else
                 {
                     sb.Append(";");
@@ -146,12 +142,7 @@ namespace " + c.Namespace + @"
             {
                 if (f.FieldType._IsExternal() && !f.FieldType._GetExternalSerializable()) continue;
                 var ft = f.FieldType;
-                if (f._Has<TemplateLibrary.NotSerialize>())
-                {
-                    sb.Append(@"
-            bb.Write(default(" + f.FieldType._GetTypeDecl_Csharp() + "));");
-                }
-                else if (f._Has<TemplateLibrary.CustomSerialize>())
+                if (f._Has<TemplateLibrary.Custom>())
                 {
                     sb.Append(@"
             bb.CustomWrite(bb, this, """ + f.Name + @""");");

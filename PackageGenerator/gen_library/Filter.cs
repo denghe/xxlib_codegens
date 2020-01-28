@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace TemplateLibrary
 {
-    // 白名单
+    // 生成过滤白名单
     public class Filter<T> where T : System.Attribute
     {
         HashSet<Type> depends = new HashSet<Type>();
@@ -35,7 +35,7 @@ namespace TemplateLibrary
                 if (nss.Contains(ns))
                 {
                     depends.Add(t);
-                    this.ts.Add(t);
+                    ts.Add(t);
                 }
             }
 
