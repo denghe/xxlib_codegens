@@ -192,6 +192,14 @@ public static class TypeHelpers
     }
 
     /// <summary>
+    /// 返回 t 是否为 Weak
+    /// </summary>
+    public static bool _IsUnique(this Type t)
+    {
+        return t.Namespace == nameof(TemplateLibrary) && t.Name == "Unique`1";
+    }
+
+    /// <summary>
     /// 返回 t 是否为 Shared
     /// </summary>
     public static bool _IsShared(this Type t)
@@ -442,25 +450,21 @@ public static class TypeHelpers
     /// <summary>
     /// 获取 CPP 的默认值填充代码
     /// </summary>
-    public static string _GetDefaultValueDecl_Cpp(this object v, string templateName, Type ft = null)
+    public static string _GetDefaultValueDecl_Cpp(this Type t, object v, string templateName)
     {
-        if (v == null)
-        {
-            if (ft == null)
-            {
-                return "nullptr";
-            }
-            else
-            {
-                return ft._IsNullable() ? "" : "nullptr";
-            }
-        }
-        var t = v.GetType();
         if (t._IsNullable())
+        {
+            return v == null ? "" : v.ToString();
+        }
+        if (t.IsGenericType || t.Name == "Byte[]")
         {
             return "";
         }
-        else if (t.IsValueType)
+        if (t._IsString())
+        {
+            return v == null ? "" : ("@\"" + ((string)v).Replace("\"", "\"\"") + "\"");
+        }
+        if (t.IsValueType)
         {
             if (t.IsEnum)
             {
@@ -480,15 +484,7 @@ public static class TypeHelpers
             if (t._IsNumeric()) return v.ToString().ToLower();   // lower for Ture, False bool
             else return "";
         }
-        else if (t._IsString())
-        {
-            return "@\"" + ((string)v).Replace("\"", "\"\"") + "\"";
-        }
-        else
-        {
-            return v.ToString();
-        }
-        // todo: 其他需要引号的类型的处理, 诸如 DateTime, Guid 啥的
+        throw new NotImplementedException();
     }
 
 
@@ -744,15 +740,19 @@ public static class TypeHelpers
     /// <summary>
     /// 获取 C++ 的类型声明串
     /// </summary>
-    public static string _GetTypeDecl_Cpp(this Type t, string templateName, string suffix = "")
+    public static string _GetTypeDecl_Cpp(this Type t, string templateName)
     {
         if (t._IsNullable())
         {
-            return "std::optional<" + t.GenericTypeArguments[0]._GetTypeDecl_Cpp(templateName, t._IsStruct()?"": "_s") + ">";
+            return "std::optional<" + t.GenericTypeArguments[0]._GetTypeDecl_Cpp(templateName) + ">";
         }
-        if (t.IsArray)                // 当前特指 byte[]
+        if (t.IsArray)  // 当前特指 byte[]
         {
-            throw new NotSupportedException();
+            if (t.Name != "Byte[]") throw new NotSupportedException();
+            else
+            {
+                return "xx::BBuffer";
+            }
         }
         else if (t._IsTuple())
         {
@@ -760,13 +760,15 @@ public static class TypeHelpers
             for (int i = 0; i < t.GenericTypeArguments.Length; ++i)
             {
                 if (i > 0)
+                {
                     rtv += ", ";
-                rtv += _GetTypeDecl_Cpp(t.GenericTypeArguments[i], templateName, t._IsStruct() ? "" : "_s");
+                }
+                rtv += t.GenericTypeArguments[i]._GetTypeDecl_Cpp(templateName);
             }
             rtv += ">";
             return rtv;
         }
-        else if (t.IsEnum) // enum & struct
+        else if (t.IsEnum)  // enum & struct
         {
             return (t._IsExternal() ? "" : templateName) + "::" + t.FullName.Replace(".", "::");
         }
@@ -774,26 +776,23 @@ public static class TypeHelpers
         {
             if (t.Namespace == nameof(TemplateLibrary))
             {
-                if (t.Name == "Weak`1")
+                switch (t.Name)
                 {
-                    return "std::weak_ptr<" + _GetTypeDecl_Cpp(t.GenericTypeArguments[0], templateName) + ">";
-                }
-                if (t.Name == "Shared`1")
-                {
-                    return "std::shared_ptr<" + _GetTypeDecl_Cpp(t.GenericTypeArguments[0], templateName) + ">";
-                }
-                else if (t.Name == "List`1")
-                {
-                    var ct = t.GenericTypeArguments[0];
-                    return "std::vector" + @"<" + _GetTypeDecl_Cpp(ct, templateName, ct._IsStruct() ? "" : "_s") + ">";
-                }
-                else if (t.Name == "DateTime")
-                {
-                    return "xx::DateTime";
-                }
-                else if (t.Name == "BBuffer")
-                {
-                    return "xx::BBuffer" + suffix;
+                    case "Weak`1":
+                        return "std::weak_ptr<" + _GetTypeDecl_Cpp(t.GenericTypeArguments[0], templateName) + ">";
+                    case "Shared`1":
+                        return "std::shared_ptr<" + _GetTypeDecl_Cpp(t.GenericTypeArguments[0], templateName) + ">";
+                    case "Unique`1":
+                        return "std::unique_ptr<" + _GetTypeDecl_Cpp(t.GenericTypeArguments[0], templateName) + ">";
+                    case "List`1":
+                        {
+                            var ct = t.GenericTypeArguments[0];
+                            return "std::vector" + @"<" + ct._GetTypeDecl_Cpp(templateName) + ">";
+                        }
+                    case "BBuffer":
+                        return "xx::BBuffer";
+                    default:
+                        throw new NotImplementedException();
                 }
             }
             else if (t.Namespace == nameof(System))
@@ -801,7 +800,7 @@ public static class TypeHelpers
                 switch (t.Name)
                 {
                     case "Object":
-                        return "::xx::Object" + suffix;
+                        return "::xx::Object";
                     case "Void":
                         return "void";
                     case "Byte":
@@ -838,7 +837,8 @@ public static class TypeHelpers
                         return "std::string";
                 }
             }
-            return (t._IsExternal() ? "" : ("::" + templateName)) + "::" + t.FullName.Replace(".", "::") + (t.IsValueType ? "" : ((t._IsExternal() && !t._GetExternalSerializable()) ? "" : suffix));
+            return (t._IsExternal() ? "" : templateName) + "::" + t.FullName.Replace(".", "::");
+            //return (t._IsExternal() ? "" : ("::" + templateName)) + "::" + t.FullName.Replace(".", "::") + (t.IsValueType ? "" : ((t._IsExternal() && !t._GetExternalSerializable()) ? "" : suffix));
         }
     }
 

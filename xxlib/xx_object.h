@@ -885,6 +885,8 @@ namespace xx {
 	constexpr bool IsShared_v = IsShared<T>::value;
 
 
+
+
 	template<typename T>
 	struct IsWeak : std::false_type {};
 
@@ -893,6 +895,8 @@ namespace xx {
 
 	template<typename T>
 	constexpr bool IsWeak_v = IsWeak<T>::value;
+
+
 
 
 	template<typename T>
@@ -905,6 +909,35 @@ namespace xx {
 	constexpr bool IsTuple_v = IsTuple<T>::value;
 
 
+
+
+	template<typename T>
+	struct IsVector : std::false_type {};
+
+	template<typename T>
+	struct IsVector<std::vector<T>> : std::true_type {};
+
+	template<typename T>
+	constexpr bool IsVector_v = IsVector<T>::value;
+
+
+
+
+	// 计算 std::vector<std::vector<... 嵌套深度
+	template<typename T, typename ENABLED = std::enable_if_t<IsVector_v<T>>>
+	constexpr size_t DeepLevel(T* const& v) {
+		if constexpr (IsVector_v<typename T::value_type>) {
+			return DeepLevel((typename T::value_type*)0) + 1;
+		}
+		else return 1;
+	}
+
+	template<typename T>
+	constexpr size_t DeepLevel_v = DeepLevel((T*)0);
+
+
+
+
 	template<typename T>
 	struct IsPair : std::false_type {};
 
@@ -915,6 +948,8 @@ namespace xx {
 	constexpr bool IsPair_v = IsPair<T>::value;
 
 
+
+
 	template<typename T>
 	struct IsOptional : std::false_type {};
 
@@ -923,6 +958,7 @@ namespace xx {
 
 	template<typename T>
 	constexpr bool IsOptional_v = IsOptional<T>::value;
+
 
 
 
@@ -943,6 +979,7 @@ namespace xx {
 
 	template<typename T>
 	constexpr bool IsArray_v = IsArray<T>::value;
+
 
 
 

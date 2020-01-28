@@ -13,7 +13,28 @@ namespace xx {
 		size_t offsetRoot = 0;												// offset值写入修正
 		size_t readLengthLimit = 0;											// 主用于传递给容器类进行长度合法校验
 
-		// todo: 这些容器改为指针, XxxxxRoot 函数中检测并创建
+		// todo: 取消 string BBuffer 内置类型
+		// todo: 增加 ReadLimit <size_t...> , 针对 多级 vector 嵌套可层层检查
+		// todo: 这些容器改为 std::shared_ptr, 调用 XxxxxRoot 之前 用户自行初始化( 通过 ReadInit / WriteInit 初始化 或 传入公用的 )
+		// todo: 不再直接支持 std::shared_ptr<std::string>, 不再合并
+
+		//inline void ReadInit() {
+		//	// todo
+		//}
+		//inline void WriteInit() {
+		//	// todo
+		//}
+
+		//template<size_t...limits, typename T, typename ENABLED = std::enable_if_t<IsVector_v<T>>>
+		//int ReadLimit(T& v) {
+		//	readLengthLimit = limits;
+		//	if constexpr (IsVector_v<T::value_type>) {
+		//	}
+		//	else {
+		//	}
+		//	return 0;
+		//}
+
 		std::unordered_map<void*, size_t> ptrs;
 		std::unordered_map<size_t, std::shared_ptr<Object>> objIdxs;
 		std::unordered_map<size_t, std::shared_ptr<std::string>> strIdxs;
@@ -40,9 +61,6 @@ namespace xx {
 			this->cap = cap;
 			this->offset = offset;
 		}
-
-
-		// todo: creators, Register, CreateByTypeId 变非静态, creators 移到生成物, ReadRoot WriteRoot 前可切换 creators 以便同时支持多份 PKG 生成物
 
 		typedef std::shared_ptr<Object>(*Creator)();
 		inline static std::array<Creator, 1 << (sizeof(uint16_t) * 8)> creators;

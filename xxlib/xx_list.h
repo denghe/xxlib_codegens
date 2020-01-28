@@ -10,7 +10,7 @@ namespace xx
 	template<typename T, size_t reservedHeaderLen = 0>
 	struct List : Object {
 		typedef T ChildType;
-		T* buf;
+		T*			buf;
 		size_t		cap;
 		size_t		len;
 
@@ -288,8 +288,7 @@ namespace xx
 		}
 
 		// ÷ß≥÷ for( auto&& c : list ) ”Ô∑®.
-		struct Iter
-		{
+		struct Iter {
 			T* ptr;
 			bool operator!=(Iter const& other) noexcept { return ptr != other.ptr; }
 			Iter& operator++() noexcept { ++ptr; return *this; }

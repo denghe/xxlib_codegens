@@ -3,34 +3,43 @@
 
 namespace PKG {
 	struct PkgGenMd5 {
-		inline static const std::string value = "#*MD5<d6a2eca45e6f389e1a230e898334ad68>*#";
+		inline static const std::string value = "#*MD5<60ce0d09b0eea83138153fe57a010cc9>*#";
     };
 	struct AllTypesRegister {
         AllTypesRegister();
     };
     inline AllTypesRegister allTypesRegisterInstance;
 
-namespace TestNamespace {
+namespace NS1 {
+    // 测试传统值类型
     struct A;
-    struct Foo1;
-    using Foo1_s = std::shared_ptr<Foo1>;
-    using Foo1_w = std::weak_ptr<Foo1>;
-
-    struct B;
 }
-    struct Bar;
-    using Bar_s = std::shared_ptr<Bar>;
-    using Bar_w = std::weak_ptr<Bar>;
+    // 测试可空值类型
+    struct A;
+namespace NS3::NS4 {
+    // 测试可空值类型数组
+    struct A;
+}
+    // 测试可空可空值类型数组
+    struct B;
+    // 包含结构体 B 用于收发. 测试多层 List + Limit
+    struct Foo;
+    using Foo_s = std::shared_ptr<Foo>;
+    using Foo_w = std::weak_ptr<Foo>;
 
+    // 测试 Weak 递归引用
     struct Node;
     using Node_s = std::shared_ptr<Node>;
     using Node_w = std::weak_ptr<Node>;
 
-namespace TestNamespace {
+    // 测试 Unique, Shared
+    struct NodeContainer;
+    using NodeContainer_s = std::shared_ptr<NodeContainer>;
+    using NodeContainer_w = std::weak_ptr<NodeContainer>;
+
+namespace NS1 {
+    // 测试传统值类型
     struct A {
-        std::optional<::xx::Pos> _pos;
-    };
-    struct Foo1 : ::xx::Object {
         uint8_t _byte = 0;
         int8_t _sbyte = 0;
         uint16_t _ushort = 0;
@@ -41,59 +50,111 @@ namespace TestNamespace {
         int64_t _long = 0;
         float _float = 0;
         double _double = 0;
-        ::xx::Random_s _random = nullptr;
-        ::xx::Pos _pos;
-        XX_CODEGEN_CLASS_HEADER(Foo1, ::xx::Object)
-    };
-    struct B : ::PKG::TestNamespace::A {
-        std::optional<float> _float;
+        bool _bool = false;
+        std::string _string;
+        xx::BBuffer _bbuffer;
     };
 }
-    struct Bar : ::xx::Object {
-        std::vector<::PKG::TestNamespace::Foo1_s> foo1s_v;
-        std::vector<std::shared_ptr<::PKG::TestNamespace::Foo1>> foo1s_s;
-        std::vector<::PKG::TestNamespace::B> bs_v;
-        XX_CODEGEN_CLASS_HEADER(Bar, ::xx::Object)
+    // 测试可空值类型
+    struct A : PKG::NS1::A {
+        std::optional<int32_t> nullable_int;
+        std::optional<std::string> nullable_string;
+        std::optional<xx::BBuffer> nullable_bbuffer;
     };
+namespace NS3::NS4 {
+    // 测试可空值类型数组
+    struct A : PKG::A {
+        std::vector<std::optional<int32_t>> list_nullable_int;
+        std::vector<std::optional<std::string>> list_nullable_string;
+        std::vector<std::optional<xx::BBuffer>> list_nullable_bbuffer;
+    };
+}
+    // 测试可空可空值类型数组
+    struct B : PKG::NS3::NS4::A {
+        std::optional<std::vector<std::optional<int32_t>>> _int;
+        std::optional<std::vector<std::optional<std::string>>> _string;
+        std::optional<std::vector<std::optional<xx::BBuffer>>> _bbuffer;
+    };
+    // 包含结构体 B 用于收发. 测试多层 List + Limit
+    struct Foo : ::xx::Object {
+        std::vector<std::vector<std::optional<PKG::B>>> bs;
+        XX_CODEGEN_CLASS_HEADER(Foo, ::xx::Object)
+    };
+    // 测试 Weak 递归引用
     struct Node : ::xx::Object {
-        std::shared_ptr<::PKG::Node> node_s;
-        std::weak_ptr<::PKG::Node> node_w;
+        std::weak_ptr<PKG::Node> parent;
         XX_CODEGEN_CLASS_HEADER(Node, ::xx::Object)
+    };
+    // 测试 Unique, Shared
+    struct NodeContainer : ::xx::Object {
+        std::shared_ptr<PKG::Node> node;
+        std::unique_ptr<PKG::Foo> foo;
+        XX_CODEGEN_CLASS_HEADER(NodeContainer, ::xx::Object)
     };
 }
 namespace xx {
 	template<>
-	struct BFuncs<::PKG::TestNamespace::A, void> {
-		static void Write(BBuffer& bb, ::PKG::TestNamespace::A const& in) noexcept;
-		static int Read(BBuffer& bb, ::PKG::TestNamespace::A& out) noexcept;
+	struct BFuncs<PKG::NS1::A, void> {
+		static void Write(BBuffer& bb, PKG::NS1::A const& in) noexcept;
+		static int Read(BBuffer& bb, PKG::NS1::A& out) noexcept;
 	};
 	template<>
-	struct SFuncs<::PKG::TestNamespace::A, void> {
-		static inline void Append(std::string& s, ::PKG::TestNamespace::A const& in) noexcept;
-		static inline void AppendCore(std::string& s, ::PKG::TestNamespace::A const& in) noexcept;
+	struct SFuncs<PKG::NS1::A, void> {
+		static inline void Append(std::string& s, PKG::NS1::A const& in) noexcept;
+		static inline void AppendCore(std::string& s, PKG::NS1::A const& in) noexcept;
     };
 	template<>
-    struct IFuncs<::PKG::TestNamespace::A, void> {
-		static inline int InitCascade(void* const& o, ::PKG::TestNamespace::A const& in) noexcept;
-		static inline int InitCascadeCore(void* const& o, ::PKG::TestNamespace::A const& in) noexcept;
+    struct IFuncs<PKG::NS1::A, void> {
+		static inline int InitCascade(void* const& o, PKG::NS1::A const& in) noexcept;
+		static inline int InitCascadeCore(void* const& o, PKG::NS1::A const& in) noexcept;
     };
 	template<>
-	struct BFuncs<::PKG::TestNamespace::B, void> {
-		static void Write(BBuffer& bb, ::PKG::TestNamespace::B const& in) noexcept;
-		static int Read(BBuffer& bb, ::PKG::TestNamespace::B& out) noexcept;
+	struct BFuncs<PKG::A, void> {
+		static void Write(BBuffer& bb, PKG::A const& in) noexcept;
+		static int Read(BBuffer& bb, PKG::A& out) noexcept;
 	};
 	template<>
-	struct SFuncs<::PKG::TestNamespace::B, void> {
-		static inline void Append(std::string& s, ::PKG::TestNamespace::B const& in) noexcept;
-		static inline void AppendCore(std::string& s, ::PKG::TestNamespace::B const& in) noexcept;
+	struct SFuncs<PKG::A, void> {
+		static inline void Append(std::string& s, PKG::A const& in) noexcept;
+		static inline void AppendCore(std::string& s, PKG::A const& in) noexcept;
     };
 	template<>
-    struct IFuncs<::PKG::TestNamespace::B, void> {
-		static inline int InitCascade(void* const& o, ::PKG::TestNamespace::B const& in) noexcept;
-		static inline int InitCascadeCore(void* const& o, ::PKG::TestNamespace::B const& in) noexcept;
+    struct IFuncs<PKG::A, void> {
+		static inline int InitCascade(void* const& o, PKG::A const& in) noexcept;
+		static inline int InitCascadeCore(void* const& o, PKG::A const& in) noexcept;
     };
-    template<> struct TypeId<::PKG::TestNamespace::Foo1> { static const uint16_t value = 13001; };
-    template<> struct TypeId<::PKG::Bar> { static const uint16_t value = 13002; };
-    template<> struct TypeId<::PKG::Node> { static const uint16_t value = 13003; };
+	template<>
+	struct BFuncs<PKG::NS3::NS4::A, void> {
+		static void Write(BBuffer& bb, PKG::NS3::NS4::A const& in) noexcept;
+		static int Read(BBuffer& bb, PKG::NS3::NS4::A& out) noexcept;
+	};
+	template<>
+	struct SFuncs<PKG::NS3::NS4::A, void> {
+		static inline void Append(std::string& s, PKG::NS3::NS4::A const& in) noexcept;
+		static inline void AppendCore(std::string& s, PKG::NS3::NS4::A const& in) noexcept;
+    };
+	template<>
+    struct IFuncs<PKG::NS3::NS4::A, void> {
+		static inline int InitCascade(void* const& o, PKG::NS3::NS4::A const& in) noexcept;
+		static inline int InitCascadeCore(void* const& o, PKG::NS3::NS4::A const& in) noexcept;
+    };
+	template<>
+	struct BFuncs<PKG::B, void> {
+		static void Write(BBuffer& bb, PKG::B const& in) noexcept;
+		static int Read(BBuffer& bb, PKG::B& out) noexcept;
+	};
+	template<>
+	struct SFuncs<PKG::B, void> {
+		static inline void Append(std::string& s, PKG::B const& in) noexcept;
+		static inline void AppendCore(std::string& s, PKG::B const& in) noexcept;
+    };
+	template<>
+    struct IFuncs<PKG::B, void> {
+		static inline int InitCascade(void* const& o, PKG::B const& in) noexcept;
+		static inline int InitCascadeCore(void* const& o, PKG::B const& in) noexcept;
+    };
+    template<> struct TypeId<PKG::Foo> { static const uint16_t value = 13002; };
+    template<> struct TypeId<PKG::Node> { static const uint16_t value = 13001; };
+    template<> struct TypeId<PKG::NodeContainer> { static const uint16_t value = 13003; };
 }
 #include "PKG_class_end.inc"

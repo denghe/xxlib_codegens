@@ -142,7 +142,7 @@ namespace " + e.Namespace.Replace(".", "::") + @" {");
         foreach (var f in fs)
         {
             var ft = f.FieldType;
-            var ftn = ft._GetTypeDecl_Cpp(templateName, ft._IsStruct() ? "" : "_s");
+            var ftn = ft._GetTypeDecl_Cpp(templateName);
             sb.Append(f._GetDesc()._GetComment_Cpp(8) + @"
         " + (f.IsStatic ? "constexpr " : "") + ftn + " " + f.Name);
 
@@ -153,8 +153,8 @@ namespace " + e.Namespace.Replace(".", "::") + @" {");
             else
             {
                 var v = f.GetValue(f.IsStatic ? null : o);
-                var dv = v._GetDefaultValueDecl_Cpp(templateName);
-                if (dv != "" && !ft._IsList() && !(ft._IsUserClass()) && !ft._IsNullable() && !ft._IsObject() && !ft._IsShared() && !ft._IsWeak())  // 当前还无法正确处理 String 数据类型的默认值
+                var dv = ft._GetDefaultValueDecl_Cpp(v, templateName);
+                if (dv != "")
                 {
                     sb.Append(" = " + dv + ";");
                 }

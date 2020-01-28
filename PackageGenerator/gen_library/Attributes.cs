@@ -72,13 +72,13 @@ namespace TemplateLibrary
     }
 
     /// <summary>
-    /// 标记当反列化 float / double 时, 如果值是 nan, 就设成 v
+    /// 标记当反列化 float / double 时, 如果值是 nan( not a number ), 就设成 v
     /// </summary>
     [System.AttributeUsage(System.AttributeTargets.Field)]
-    public class NaN : System.Attribute
+    public class Nan : System.Attribute
     {
         public string value;
-        public NaN(float v)
+        public Nan(float v)
         {
             if (float.IsNaN(v) || float.IsInfinity(v))
             {
@@ -86,7 +86,7 @@ namespace TemplateLibrary
             }
             value = v.ToString() + "f";
         }
-        public NaN(double v)
+        public Nan(double v)
         {
             if (double.IsNaN(v) || double.IsInfinity(v))
             {
@@ -94,7 +94,7 @@ namespace TemplateLibrary
             }
             value = v.ToString();
         }
-        public NaN()
+        public Nan()
         {
             value = "";
         }

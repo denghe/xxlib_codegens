@@ -4,10 +4,10 @@ using TemplateLibrary;
 [TypeIdMappings]
 interface ITypeIdMappings
 {
-    TestNamespace.Foo1 _13001 { get; }
+    Foo _13002 { get; }
 
-    Bar _13002 { get; }
+    Node _13001 { get; }
 
-    Node _13003 { get; }
+    NodeContainer _13003 { get; }
 
 }

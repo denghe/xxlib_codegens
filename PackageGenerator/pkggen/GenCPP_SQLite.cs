@@ -64,7 +64,7 @@ namespace " + iface.Namespace + @" {");
 
                 var ps = f.GetParameters();
                 var rt = f.ReturnType;
-                var rtn = rt._GetTypeDecl_Cpp(templateName, "_p");
+                var rtn = rt._GetTypeDecl_Cpp(templateName);
 
                 sb2.Clear();
                 foreach (var p in ps)
@@ -109,7 +109,7 @@ namespace " + iface.Namespace + @" {");
 
                     if (p.HasDefaultValue)
                     {
-                        sb.Append(" = " + p._GetDefaultValueDecl_Cpp(templateName));    // todo: string 支持
+                        sb.Append(" = " + pt._GetDefaultValueDecl_Cpp(p.DefaultValue, templateName));    // todo: string 支持
                     }
                 }
 

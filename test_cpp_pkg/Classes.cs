@@ -1,22 +1,11 @@
 ﻿#pragma warning disable 0169, 0414
 using TemplateLibrary;
 
-// 规则：
-// class 代表继承自 xx::Object
-// struct 代表类似 pod 类型的一般结构体，没有 typeId 分配
-// 发送只能直接发 class. 不管是 shared_ptr<class> 还是 class 值类型，以同样的编码格式发送
-// 接收时统统认为是 shared_ptr<class>.
-// 不可写 Shared<struct> 或 Weak<struct>.
-// List, string, BBuffer 是 struct / 值类型
-// todo: 生成时的合法性检测
-// 不标记 Shared<> 或 Weak<> 默认都认为是值类型方式使用
-// 值类型使用模式下，没有 typeId. 只能存放本体，不可以存放派生类
-
-
-namespace TestNamespace
+namespace NS1
 {
-    // 继承自 xx::Object
-    class Foo1
+    [Desc("测试传统值类型")]
+    [Struct]
+    class A
     {
         byte _byte;
         sbyte _sbyte;
@@ -26,35 +15,66 @@ namespace TestNamespace
         int _int;
         ulong _ulong;
         long _long;
+        [Nan(0), Infinity(0)]
         float _float;
+        [Nan(0), Infinity(0)]
         double _double;
-        xx.Random _random;
-        xx.Pos _pos;
-    }
-
-    [Struct]
-    class A
-    {
-        Nullable<xx.Pos> _pos;
-    }
-
-    [Struct]
-    class B : A
-    {
-        Nullable<float> _float;
+        bool _bool;
+        [Limit(16)]
+        string _string;
+        [Limit(32)]
+        byte[] _bbuffer;
     }
 }
 
-class Bar
+[Desc("测试可空值类型")]
+[Struct]
+class A : NS1.A
 {
-    List<TestNamespace.Foo1> foo1s_v;
-    List<Shared<TestNamespace.Foo1>> foo1s_s;
-
-    List<TestNamespace.B> bs_v;
+    int? nullable_int;
+    Nullable<string> nullable_string;
+    Nullable<byte[]> nullable_bbuffer;
 }
 
+namespace NS3.NS4
+{
+    [Desc("测试可空值类型数组")]
+    [Struct]
+    class A : global::A
+    {
+        List<int?> list_nullable_int;
+        List<Nullable<string>> list_nullable_string;
+        List<Nullable<byte[]>> list_nullable_bbuffer;
+    }
+}
+
+[Desc("测试可空可空值类型数组")]
+[Struct]
+class B : NS3.NS4.A
+{
+    Nullable<List<int?>> _int;
+    Nullable<List<Nullable<string>>> _string;
+    Nullable<List<Nullable<byte[]>>> _bbuffer;
+}
+
+[Desc("包含结构体 B 用于收发. 测试多层 List + Limit")]
+class Foo
+{
+    [Limit(1), Limit(3)]
+    List<List<Nullable<B>>> bs;
+}
+
+[Desc("测试 Weak 递归引用")]
 class Node
 {
-    Shared<Node> node_s;
-    Weak<Node> node_w;
+    Weak<Node> parent;
 }
+
+[Desc("测试 Unique, Shared")]
+class NodeContainer
+{
+    Shared<Node> node;
+    Unique<Foo> foo;
+}
+
+// todo: 测试 External Include Custom
