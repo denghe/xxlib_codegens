@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "xx_bbuffer.h"
+#include "xx_string.h"
 #include "http_parser.h"
 
 namespace xx {

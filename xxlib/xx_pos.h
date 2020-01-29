@@ -1,12 +1,11 @@
 ﻿#pragma once
+#include "xx_string.h"
 #include "xx_bbuffer.h"
-#include <math.h>
 
 namespace xx
 {
 	// 用来存坐标
-	struct Pos
-	{
+	struct Pos {
 		float x = 0, y = 0;
 
 		inline bool operator==(const Pos& v) const noexcept {
@@ -29,12 +28,12 @@ namespace xx
 		inline Pos operator/(float const& s) const noexcept {
 			return Pos{ x / s, y / s };
 		}
-		inline float distance(Pos const& v) const
-		{
+		inline float Distance(Pos const& v) const {
 			float dx = v.x - x;
 			float dy = v.y - y;
 			return std::sqrt(dx * dx + dy * dy);
 		}
+
 #ifdef CC_TARGET_PLATFORM
 		inline operator cocos2d::Vec2() const noexcept {
 			return *(cocos2d::Vec2*)this;
@@ -59,7 +58,7 @@ namespace xx
 		inline Pos operator-(cocos2d::Vec2 const& v) const noexcept {
 			return Pos{ x - v.x, y - v.y };
 		}
-		inline float distance(cocos2d::Vec2 const& v) const
+		inline float Distance(cocos2d::Vec2 const& v) const
 		{
 			float dx = v.x - x;
 			float dy = v.y - y;
@@ -67,6 +66,10 @@ namespace xx
 		}
 #endif
 	};
+
+	// 标识内存可移动
+	template<>
+	struct IsTrivial<Pos, void> : std::true_type {};
 
 	// 适配 Pos 之 ToString
 	template<>

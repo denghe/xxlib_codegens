@@ -18,9 +18,13 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)fixed_function.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)http_parser.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)ikcp.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_all.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_astar.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)xx_epoll2_http.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)xx_epoll2_tcp_ex.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_base.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_cout.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_epoll.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_epoll_tcp_ex.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_guid.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_itempool.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_bbuffer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_coros_boost.h" />
@@ -28,8 +32,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_epoll.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_buf.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_buf_queue.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)xx_epoll2.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)xx_epoll2.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_file.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_http.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_list.h" />
@@ -40,9 +42,11 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_pos.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_queue.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_random.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)xx_random.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_epoll_http.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_scopeguard.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_signal.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_sqlite.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_string.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_threadpool.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_threadpool_ex.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_timeout.h" />

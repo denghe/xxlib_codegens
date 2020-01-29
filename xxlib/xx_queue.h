@@ -6,10 +6,10 @@ namespace xx {
 	//...............FR...............					// Head == Tail
 	//......Head+++++++++++Tail.......					// DataLen = Tail - Head
 	//++++++Tail...........Head+++++++					// DataLen = BufLen - Head + Tail
-	template <class T>
+	template <typename T>
 	struct Queue {
 		typedef T ChildType;
-		T*				buf;
+		T*			buf;
 		size_t		cap;
 		size_t		head = 0, tail = 0;					// FR..............................
 
@@ -54,6 +54,10 @@ namespace xx {
 
 	template<typename T>
 	using Queue_w = std::weak_ptr<Queue<T>>;
+
+	// 标识内存可移动
+	template<typename T>
+	struct IsTrivial<Queue<T>, void> : std::true_type {};
 }
 
 // impls

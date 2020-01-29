@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "uv.h"
+#include "xx_scopeguard.h"
 #include "xx_bbuffer.h"
 #include "xx_dict.h"
 #include "ikcp.h"
@@ -12,7 +13,6 @@ namespace xx {
 
 		BBuffer recvBB;								// shared deserialization for package receive. direct replace buf when using
 		BBuffer sendBB;								// shared serialization for package send
-		BBuffer_s sharedBB = xx::Make<BBuffer>();	// shared serialization for package send( shared_ptr version )
 
 		int autoId = 0;								// udps key, udp dialer port gen: --autoId
 		Dict<int, std::weak_ptr<UvKcp>> udps;		// key: port( dialer peer port = autoId )

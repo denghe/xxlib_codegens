@@ -1,14 +1,11 @@
 #pragma once
-#include "xx_object.h"
+#include "xx_base.h"
 
-namespace xx
-{
-	struct BBuffer;
-
+namespace xx {
 	// 类似 std vector / .net List 的简化容器
-	// reservedHeaderLen 为分配 buf 内存后在前面空出一段内存不用, 也不初始化, 扩容不复制( 为附加头部数据创造便利 )
+	// reservedHeaderLen 为分配 buf 内存后在前面空出一段内存不用, 也不初始化, 扩容不复制( 为附加头部数据 或放置引用计数 创造便利 )
 	template<typename T, size_t reservedHeaderLen = 0>
-	struct List : Object {
+	struct List {
 		typedef T ChildType;
 		T*			buf;
 		size_t		cap;
@@ -298,63 +295,9 @@ namespace xx
 		Iter end() noexcept { return Iter{ buf + len }; }
 		Iter begin() const noexcept { return Iter{ buf }; }
 		Iter end() const noexcept { return Iter{ buf + len }; }
-
-
-		// Object 接口支持
-		virtual uint16_t GetTypeId() const noexcept override {
-			return TypeId_v<List<T>>;
-		}
-		void ToBBuffer(BBuffer& bb) const noexcept override;
-		int FromBBuffer(BBuffer& bb) noexcept override;
-
-		int InitCascade(void* const& o) noexcept override {
-			if constexpr (std::is_base_of_v<Object, T>) {
-				for (size_t i = 0; i < len; ++i) {
-					if (int r = buf[i].InitCascade(o)) return r;
-				}
-			}
-			else if constexpr (xx::IsShared_v<T>) {
-				if constexpr (std::is_base_of_v<Object, typename T::element_type>) {
-					for (size_t i = 0; i < len; ++i) {
-						if (buf[i]) {
-							if (int r = buf[i]->InitCascade(o)) return r;
-						}
-					}
-				}
-			}
-			return 0;
-		}
-
-		void ToString(std::string& s) const noexcept override {
-			if (toStringFlag) {
-				Append(s, "{ ... }");
-				return;
-			}
-			SetToStringFlag();
-			Append(s, "[ ");
-			for (size_t i = 0; i < len; i++) {
-				Append(s, buf[i], ", ");
-			}
-			if (len) {
-				s.resize(s.size() - 2);
-				Append(s, " ]");
-			}
-			else {
-				s[s.size() - 1] = ']';
-			}
-			SetToStringFlag(false);
-		}
 	};
 
 	// 标识内存可移动
 	template<typename T, size_t reservedHeaderLen>
-	struct IsTrivial<List<T, reservedHeaderLen>, void> {
-		static const bool value = true;
-	};
-
-	template<typename T, size_t reservedHeaderLen = 0>
-	using List_s = std::shared_ptr<List<T, reservedHeaderLen>>;
-
-	template<typename T, size_t reservedHeaderLen = 0>
-	using List_w = std::shared_ptr<List<T, reservedHeaderLen>>;
+	struct IsTrivial<List<T, reservedHeaderLen>, void> : std::true_type {};
 }

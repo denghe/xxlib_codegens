@@ -231,13 +231,13 @@ namespace xx {");
 	};
 	template<>
 	struct SFuncs<" + ctn + @", void> {
-		static inline void Append(std::string& s, " + ctn + @" const& in) noexcept;
-		static inline void AppendCore(std::string& s, " + ctn + @" const& in) noexcept;
+		static void Append(std::string& s, " + ctn + @" const& in) noexcept;
+		static void AppendCore(std::string& s, " + ctn + @" const& in) noexcept;
     };
 	template<>
     struct IFuncs<" + ctn + @", void> {
-		static inline int InitCascade(void* const& o, " + ctn + @" const& in) noexcept;
-		static inline int InitCascadeCore(void* const& o, " + ctn + @" const& in) noexcept;
+		static int InitCascade(void* const& o, " + ctn + @" const& in) noexcept;
+		static int InitCascadeCore(void* const& o, " + ctn + @" const& in) noexcept;
     };");
             // todo: IFuncs? 
         }

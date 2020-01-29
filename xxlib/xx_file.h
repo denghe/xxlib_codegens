@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "xx_string.h"
 #include "xx_bbuffer.h"
 #include <fstream>
 #include <filesystem>
