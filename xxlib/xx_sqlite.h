@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "xx_bbuffer.h"
+#include "xx_serializer.h"
 #include "sqlite3.h"
 
 // todo: 补 const
@@ -109,7 +109,7 @@ namespace xx {
 			void SetParameter(int const& parmIdx, std::string const& str, bool const& makeCopy = false);
 
 			// 二进制类
-			void SetParameter(int const& parmIdx, BBuffer const& bb, bool const& makeCopy = false);
+			void SetParameter(int const& parmIdx, Serializer const& bb, bool const& makeCopy = false);
 
 			// 可空类型
 			template<typename T>
@@ -564,7 +564,7 @@ namespace xx {
 			SetParameter(parmIdx, (char*)str.c_str(), str.size(), makeCopy);
 		}
 
-		inline void Query::SetParameter(int const& parmIdx, BBuffer const& bb, bool const& makeCopy) {
+		inline void Query::SetParameter(int const& parmIdx, Serializer const& bb, bool const& makeCopy) {
 			SetParameter(parmIdx, bb.buf, bb.len, makeCopy);
 		}
 
@@ -747,7 +747,7 @@ namespace xx {
 				auto&& r = ReadText(colIdx);
 				outVal.assign(r.first, r.second);
 			}
-			else if constexpr (std::is_same_v<xx::BBuffer, T>) {
+			else if constexpr (std::is_same_v<xx::Serializer, T>) {
 				auto&& r = ReadBlob(colIdx);
 				outVal.Clear();
 				outVal.AddRange((uint8_t*)r.first, r.second);

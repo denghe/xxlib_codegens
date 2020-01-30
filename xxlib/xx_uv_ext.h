@@ -9,7 +9,7 @@ namespace xx {
 
 		// 当收到内部指令包时 投递到该事件回调( bb 为 uv.recvBB )
 		// 需要在派生类中 Dispose
-		std::function<int(BBuffer& bb)> onReceiveCommand;
+		std::function<int(Serializer& bb)> onReceiveCommand;
 
 		// 构造以 id == 0xFFFFFFFF 打头的内部指令包( 符合 header + id + data 的结构 )
 		template<typename...Args>
@@ -68,7 +68,7 @@ namespace xx {
 			return peerBase->SendAfterPrepare(bb);
 		}
 
-		inline int SendTo(uint32_t const& id, int32_t const& serial, BBuffer const& data) {
+		inline int SendTo(uint32_t const& id, int32_t const& serial, Serializer const& data) {
 			if (!peerBase) return -1;
 			auto&& bb = uv.sendBB;
 			peerBase->SendPrepare(bb, 1024);
@@ -438,7 +438,7 @@ namespace xx {
 			peerChecking = false;
 			peer = As<UvFromToGatewayBasePeer>(peer_);
 
-			peer->onReceiveCommand = [this](BBuffer& bb)->int {
+			peer->onReceiveCommand = [this](Serializer& bb)->int {
 				peer->ResetTimeoutMS(peerTimeoutMS);
 				std::string cmd;
 				if (int r = bb.Read(cmd)) return r;
@@ -557,26 +557,26 @@ namespace xx {
 	// 基类的 SendXxxx, onReceiveXxxxx 不要用
 	struct UvSerialBBufferSimulatePeer : UvSimulatePeer {
 		using UvSimulatePeer::UvSimulatePeer;
-		Dict<int, std::pair<std::function<int(BBuffer* const& data)>, int64_t>> callbacks;
+		Dict<int, std::pair<std::function<int(Serializer* const& data)>, int64_t>> callbacks;
 
-		std::function<int(BBuffer& data)> onReceivePush;
-		inline int ReceivePush(BBuffer& data) noexcept { return onReceivePush ? onReceivePush(data) : 0; };
-		std::function<int(int const& serial, BBuffer& data)> onReceiveRequest;
-		inline int ReceiveRequest(int const& serial, BBuffer& data) noexcept { return onReceiveRequest ? onReceiveRequest(serial, data) : 0; };
+		std::function<int(Serializer& data)> onReceivePush;
+		inline int ReceivePush(Serializer& data) noexcept { return onReceivePush ? onReceivePush(data) : 0; };
+		std::function<int(int const& serial, Serializer& data)> onReceiveRequest;
+		inline int ReceiveRequest(int const& serial, Serializer& data) noexcept { return onReceiveRequest ? onReceiveRequest(serial, data) : 0; };
 
-		inline int SendPush(BBuffer const& data) {
+		inline int SendPush(Serializer const& data) {
 			return SendResponse(0, data);
 		}
 
-		inline int SendResponse(int32_t const& serial, BBuffer const& data) {
+		inline int SendResponse(int32_t const& serial, Serializer const& data) {
 			auto&& gp = gatewayPeer.lock();
 			if (!gp) return -1;
 			return gp->SendTo(id, serial, data);
 		}
 
-		inline int SendRequest(BBuffer const& data, std::function<int(BBuffer* const& data)>&& cb, uint64_t const& timeoutMS = 0) {
+		inline int SendRequest(Serializer const& data, std::function<int(Serializer* const& data)>&& cb, uint64_t const& timeoutMS = 0) {
 			if (Disposed()) return -1;
-			std::pair<std::function<int(BBuffer * const& data)>, int64_t> v;
+			std::pair<std::function<int(Serializer * const& data)>, int64_t> v;
 			serial = (serial + 1) & 0x7FFFFFFF;			// uint circle use
 			v.second = NowSteadyEpochMS() + (timeoutMS ? timeoutMS : uv.defaultRequestTimeoutMS);
 			if (int r = SendResponse(-serial, data)) return r;
@@ -685,7 +685,7 @@ namespace xx {
 			gatewayListener->onAccept = [this](xx::UvPeer_s peer) {
 				auto&& gp = xx::As<xx::UvFromGatewayPeer>(peer);
 				gp->ResetTimeoutMS(10L * 1000L);
-				gp->onReceiveCommand = [this, gp](xx::BBuffer& bb)->int {
+				gp->onReceiveCommand = [this, gp](xx::Serializer& bb)->int {
 					std::string cmd;
 					if (int r = bb.Read(cmd)) return r;
 					if (cmd == "gatewayId") {
@@ -808,26 +808,26 @@ namespace xx {
 	// 基类的 SendXxxx, onReceiveXxxxx 不要用
 	struct UvSerialBBufferPeer : UvPeer {
 		using UvPeer::UvPeer;
-		Dict<int, std::pair<std::function<int(BBuffer* const& data)>, int64_t>> callbacks;
+		Dict<int, std::pair<std::function<int(Serializer* const& data)>, int64_t>> callbacks;
 
-		std::function<int(BBuffer & data)> onReceivePush;
-		inline int ReceivePush(BBuffer& data) noexcept { return onReceivePush ? onReceivePush(data) : 0; };
-		std::function<int(int const& serial, BBuffer & data)> onReceiveRequest;
-		inline int ReceiveRequest(int const& serial, BBuffer& data) noexcept { return onReceiveRequest ? onReceiveRequest(serial, data) : 0; };
+		std::function<int(Serializer & data)> onReceivePush;
+		inline int ReceivePush(Serializer& data) noexcept { return onReceivePush ? onReceivePush(data) : 0; };
+		std::function<int(int const& serial, Serializer & data)> onReceiveRequest;
+		inline int ReceiveRequest(int const& serial, Serializer& data) noexcept { return onReceiveRequest ? onReceiveRequest(serial, data) : 0; };
 
-		inline int SendPush(BBuffer const& data) {
+		inline int SendPush(Serializer const& data) {
 			return SendResponse(0, data);
 		}
-		inline int SendResponse(int32_t const& serial, BBuffer const& data) {
+		inline int SendResponse(int32_t const& serial, Serializer const& data) {
 			auto&& bb = uv.sendBB;											// 借壳
 			peerBase->SendPrepare(bb, data.len);							// 预处理
 			bb.Write(serial);												// 写入 serial
 			bb.AddRange(data.buf, data.len);								// 写入数据
 			return peerBase->SendAfterPrepare(bb);
 		}
-		inline int SendRequest(BBuffer const& data, std::function<int(BBuffer* const& data)>&& cb, uint64_t const& timeoutMS = 0) {
+		inline int SendRequest(Serializer const& data, std::function<int(Serializer* const& data)>&& cb, uint64_t const& timeoutMS = 0) {
 			if (Disposed()) return -1;
-			std::pair<std::function<int(BBuffer* const& data)>, int64_t> v;
+			std::pair<std::function<int(Serializer* const& data)>, int64_t> v;
 			serial = (serial + 1) & 0x7FFFFFFF;			// uint circle use
 			v.second = NowSteadyEpochMS() + (timeoutMS ? timeoutMS : uv.defaultRequestTimeoutMS);
 			if (int r = SendResponse(-serial, data)) return r;

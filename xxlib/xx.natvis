@@ -36,7 +36,21 @@
     </Expand>
   </Type>
 
-  <Type Name="xx::BBuffer">
+  <Type Name="xx::Serializer">
+    <DisplayString Condition="cap == 0">null</DisplayString>
+    <DisplayString Condition="cap &gt; 0 &amp;&amp; len == 0">empty</DisplayString>
+    <DisplayString Condition="cap &gt; 0 &amp;&amp; len &gt; 0">len = {len}</DisplayString>
+    <Expand>
+      <Item Name="[len]" ExcludeView="simple">len</Item>
+      <Item Name="[cap]" ExcludeView="simple">cap</Item>
+      <ArrayItems>
+        <Size>len</Size>
+        <ValuePointer>buf</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+
+  <Type Name="xx::Deserializer">
     <DisplayString Condition="cap == 0">null</DisplayString>
     <DisplayString Condition="cap &gt; 0 &amp;&amp; len == 0">empty</DisplayString>
     <DisplayString Condition="cap &gt; 0 &amp;&amp; len &gt; 0">len = {len}</DisplayString>
@@ -44,6 +58,20 @@
       <Item Name="[len]" ExcludeView="simple">len</Item>
       <Item Name="[cap]" ExcludeView="simple">cap</Item>
       <Item Name="[offset]" ExcludeView="simple">offset</Item>
+      <ArrayItems>
+        <Size>len</Size>
+        <ValuePointer>buf</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+
+  <Type Name="xx::Data">
+    <DisplayString Condition="cap == 0">null</DisplayString>
+    <DisplayString Condition="cap &gt; 0 &amp;&amp; len == 0">empty</DisplayString>
+    <DisplayString Condition="cap &gt; 0 &amp;&amp; len &gt; 0">len = {len}</DisplayString>
+    <Expand>
+      <Item Name="[len]" ExcludeView="simple">len</Item>
+      <Item Name="[cap]" ExcludeView="simple">cap</Item>
       <ArrayItems>
         <Size>len</Size>
         <ValuePointer>buf</ValuePointer>

@@ -13,10 +13,10 @@ namespace xx::Epoll {
 		std::function<void(int const& reason)> onDisconnect;
 
 		// 收到 push buf 包时触发( 4 字节负数长度 + 0serial + byte[] ). recvBB 来自 ep 共享
-		std::function<void(xx::BBuffer* const& bb)> onReceivePushBuf;
+		std::function<void(xx::Serializer* const& bb)> onReceivePushBuf;
 
 		// 收到 request buf 包时触发( 4 字节负数长度 + 负数serial + byte[] ). recvBB 来自 ep 共享
-		std::function<void(int const& serial, xx::BBuffer* const& bb)> onReceiveRequestBuf;
+		std::function<void(int const& serial, xx::Serializer* const& bb)> onReceiveRequestBuf;
 
 	protected:
 		// SendRequest 的回调类型
@@ -26,7 +26,7 @@ namespace xx::Epoll {
 		std::unordered_map<int, std::pair<RequestCB, Ref<Timer>>> requestCBs;
 
 		// SendRequestBuf 的回调类型
-		typedef std::function<int(xx::BBuffer* const& recvBB)> RequestBufCB;
+		typedef std::function<int(xx::Serializer* const& recvBB)> RequestBufCB;
 
 		// 存放 SendRequestBuf 的回调
 		std::unordered_map<int, std::pair<RequestBufCB, Ref<Timer>>> requestBufCBs;

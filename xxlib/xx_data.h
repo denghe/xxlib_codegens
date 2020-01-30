@@ -3,10 +3,9 @@
 
 namespace xx {
 	// 最基础的二进制数据容器, bbuffer 的基类
-	// 自带引用计数( 在 buf 头预留 32 字节, 引用计数就放在头部, 同时也方便后期在头部填充其他信息 )
-	// 两种用法: 1. 数据填充    2. 数据只读引用 & 删除
+	// 两种模式: 1. 追加模式    2. 只读引用模式
 	struct Data {
-		char* buf = nullptr;
+		char*				buf = nullptr;
 		size_t				len = 0;
 		size_t				cap = 0;
 
@@ -17,6 +16,8 @@ namespace xx {
 		static const size_t	special = (size_t)-1;
 
 		Data() = default;
+
+		// 预分配空间 构造
 		explicit Data(size_t const& newCap) {
 			if (newCap) {
 				auto siz = Round2n(recvLen + cap);
@@ -25,22 +26,16 @@ namespace xx {
 			}
 		}
 
+		// 通过 复制一段数据 来构造
+		Data(char const* const& ptr, size_t const& siz) {
+			WriteBuf(ptr, siz);
+		}
+
 		// 复制构造
 		Data(Data const& o) {
 			operator=(o);
 		}
-		Data& operator=(Data&& o) {
-			std::swap(buf, o.buf);
-			std::swap(len, o.len);
-			std::swap(cap, o.cap);
-			return *this;
-		}
-
-		// 移动构造
-		Data(Data&& o) {
-			operator=(std::move(o));
-		}
-		Data& operator=(Data const& o) {
+		inline Data& operator=(Data const& o) {
 			if (o.cap == special) {
 				buf = o.buf;
 				len = o.len;
@@ -48,21 +43,32 @@ namespace xx {
 				++Refs();
 			}
 			else {
-				Clear(cap < o.len);
-				AddRange(o.buf, o.len);
+				Clear();
+				WriteBuf(o.buf, o.len);
 			}
 			return *this;
 		}
 
+		// 移动构造
+		Data(Data&& o) {
+			operator=(std::move(o));
+		}
+		inline Data& operator=(Data&& o) {
+			std::swap(buf, o.buf);
+			std::swap(len, o.len);
+			std::swap(cap, o.cap);
+			return *this;
+		}
+
 		// 判断数据是否一致
-		bool operator==(Data const& o) {
+		inline bool operator==(Data const& o) {
 			if (&o == this) return true;
 			if (len != o.len) return false;
 			return 0 == ::memcmp(buf, o.buf, len);
 		}
 
 		// 确保空间足够
-		void Reserve(size_t const& newCap) {
+		inline void Reserve(size_t const& newCap) {
 			assert(cap != special);
 			if (newCap <= cap) return;
 
@@ -79,7 +85,7 @@ namespace xx {
 		}
 
 		// 返回旧长度
-		size_t Resize(size_t const& newLen) {
+		inline size_t Resize(size_t const& newLen) {
 			assert(cap != special);
 			if (newLen > len) {
 				Reserve(newLen);
@@ -90,11 +96,11 @@ namespace xx {
 		}
 
 		// 下标访问
-		char& operator[](size_t const& idx) {
+		inline char& operator[](size_t const& idx) {
 			assert(idx < len);
 			return buf[idx];
 		}
-		char const& operator[](size_t const& idx) const {
+		inline char const& operator[](size_t const& idx) const {
 			assert(idx < len);
 			return buf[idx];
 		}
@@ -111,36 +117,34 @@ namespace xx {
 			}
 		}
 
-		// 追加一段 buf
-		void AddRange(char const* const& ptr, size_t const& siz) {
+		// 追加写入一段 buf
+		inline void WriteBuf(char const* const& ptr, size_t const& siz) {
 			assert(cap != special);
 			Reserve(len + siz);
 			::memcpy(buf + len, ptr, siz);
 			len += siz;
 		}
 
-		// unsafe: 应对某些需求, 直接篡改内存
-		void Reset(char* const& newBuf = nullptr, size_t const& newLen = 0, size_t const& newCap = 0) {
-			assert(cap != special);
-			buf = newBuf;
-			len = newLen;
-			cap = newCap;
-		}
-
-		// 初始化引用计数( 开启只读引用计数模式. 没数据不允许开启 )
-		void InitRefs() {
+		// 设置为只读模式, 并初始化引用计数( 开启只读引用计数模式. 没数据不允许开启 )
+		inline void SetReadonlyMode() {
 			assert(cap != special);
 			assert(len);
 			cap = special;
 			Refs() = 1;
 		}
 
+		// 判断是否为只读模式
+		inline bool Readonly() const {
+			return cap == special;
+		}
+
 		// 访问引用计数
-		size_t& Refs() const {
+		inline size_t& Refs() const {
 			assert(cap == special);
 			return *(size_t*)(buf - recvLen);
 		}
 
+		// 引用模式减持, 追加模式释放 buf
 		~Data() {
 			if (cap == special && --Refs()) return;
 			if (cap) {
@@ -148,7 +152,8 @@ namespace xx {
 			}
 		}
 
-		void Clear(bool const& freeBuf = false) {
+		// len 清 0, 可彻底释放 buf
+		inline void Clear(bool const& freeBuf = false) {
 			assert(cap != special);
 			if (freeBuf && cap) {
 				::free(buf - recvLen);
@@ -162,4 +167,21 @@ namespace xx {
 	// 标识内存可移动
 	template<>
 	struct IsTrivial<Data, void> : std::true_type {};
+
+
+	/**********************************************************************************************************************/
+	// 适配 SFuncs
+
+	// 适配 xx::Data
+	template<>
+	struct SFuncs<Serializer, void> {
+		static inline void Append(std::string& s, Data const& in) {
+			xx::Append(s, "{ \"len\":", in.len, ", \"cap\":", in.cap, ", \"buf\":[ ");
+			for (size_t i = 0; i < in.len; i++) {
+				xx::Append(s, (int)in.buf[i], ", ");
+			}
+			if (in.len) s.resize(s.size() - 2);
+			s += " ] }";
+		}
+	};
 }

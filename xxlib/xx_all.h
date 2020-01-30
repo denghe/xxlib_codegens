@@ -4,7 +4,7 @@
 #include "xx_cout.h"
 
 #include "xx_object.h"
-#include "xx_bbuffer.h"
+#include "xx_serializer.h"
 
 #include "xx_guid.h"
 #include "xx_pos.h"

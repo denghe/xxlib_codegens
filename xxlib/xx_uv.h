@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "uv.h"
 #include "xx_scopeguard.h"
-#include "xx_bbuffer.h"
+#include "xx_serializer.h"
 #include "xx_dict.h"
 #include "ikcp.h"
 
@@ -11,8 +11,8 @@ namespace xx {
 		int64_t defaultRequestTimeoutMS = 15000;	// for SendRequest( .... , 0 )
 		uint32_t maxPackageLength = 1024 * 256;		// for recv safe check
 
-		BBuffer recvBB;								// shared deserialization for package receive. direct replace buf when using
-		BBuffer sendBB;								// shared serialization for package send
+		Serializer recvBB;								// shared deserialization for package receive. direct replace buf when using
+		Serializer sendBB;								// shared serialization for package send
 
 		int autoId = 0;								// udps key, udp dialer port gen: --autoId
 		Dict<int, std::weak_ptr<UvKcp>> udps;		// key: port( dialer peer port = autoId )
@@ -408,8 +408,8 @@ namespace xx {
 		virtual std::string GetIP() noexcept = 0;
 
 		virtual int SendDirect(uint8_t* const& buf, size_t const& len) noexcept = 0;		// direct send anything
-		virtual void SendPrepare(BBuffer& bb, size_t const& reserveLen) noexcept = 0;		// resize ctx & header space to bb
-		virtual int SendAfterPrepare(BBuffer& bb) noexcept = 0;								// fill ctx & header & send
+		virtual void SendPrepare(Serializer& bb, size_t const& reserveLen) noexcept = 0;		// resize ctx & header space to bb
+		virtual int SendAfterPrepare(Serializer& bb) noexcept = 0;								// fill ctx & header & send
 
 		virtual void Flush() noexcept = 0;
 		virtual int Update(int64_t const& nowMS) noexcept = 0;
@@ -691,11 +691,11 @@ namespace xx {
 			return 0;
 		}
 
-		inline virtual void SendPrepare(BBuffer& bb, size_t const& reserveLen) noexcept override {
+		inline virtual void SendPrepare(Serializer& bb, size_t const& reserveLen) noexcept override {
 			bb.Reserve(sizeof(uv_write_t_ex) + 4 + reserveLen);
 			bb.len = sizeof(uv_write_t_ex) + 4;		// skip header space
 		}
-		inline virtual int SendAfterPrepare(BBuffer& bb) noexcept override {
+		inline virtual int SendAfterPrepare(Serializer& bb) noexcept override {
 			auto buf = bb.buf + sizeof(uv_write_t_ex);						// ref to header
 			auto len = (uint32_t)(bb.len - sizeof(uv_write_t_ex) - 4);		// calc data's len
 			::memcpy(buf, &len, sizeof(len));								// fill header
@@ -910,12 +910,12 @@ namespace xx {
 			return Send(buf, len);
 		}
 
-		inline virtual void SendPrepare(BBuffer& bb, size_t const& reserveLen) noexcept override {
+		inline virtual void SendPrepare(Serializer& bb, size_t const& reserveLen) noexcept override {
 			bb.Reserve(4 + reserveLen);
 			bb.len = 4;												// skip header space
 		}
 
-		inline virtual int SendAfterPrepare(BBuffer& bb) noexcept override {
+		inline virtual int SendAfterPrepare(Serializer& bb) noexcept override {
 			auto len = uint32_t(bb.len - 4);						// calc data's len
 			memcpy(bb.buf, &len, 4);								// fill header
 			return Send(bb.buf, bb.len);							// send by kcp

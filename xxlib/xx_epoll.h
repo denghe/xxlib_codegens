@@ -21,12 +21,13 @@
 #include <readline/history.h>
 
 #include "ikcp.h"
-#include "xx_bbuffer.h"
+#include "xx_serializer.h"
 #include "xx_dict.h"
 #include "xx_queue.h"
-#include "xx_buf.h"
-#include "xx_buf_queue.h"
+#include "xx_data_queue.h"
 #include "xx_itempool.h"
+#include "xx_scopeguard.h"
+#include "xx_cout.h"
 
 
 // todo: 统一递增填充各种 return -?
@@ -184,8 +185,8 @@ namespace xx::Epoll {
 		// 对方的 addr( udp 收到数据时就会刷新这个属性. Send 将采用这个属性 )
 		sockaddr_in6 addr;
 
-		// 收数据用堆积容器
-		xx::List<char> recv;
+		// 收数据用堆积容器( 顺便也能用于反序列化 )
+		Deserializer recv;
 
 		// 读缓冲区内存扩容增量
 		size_t readBufLen = 65536;
@@ -200,8 +201,8 @@ namespace xx::Epoll {
 		// buf + len 塞队列并开始发送
 		virtual int Send(char const* const& buf, size_t const& len) = 0;
 
-		// Buf 对象塞队列并开始发送。传递 BBuffer 或者优化群发比较便利. 相关信息需参考 Buf 构造函数
-		virtual int Send(xx::Buf&& data) = 0;
+		// Data 对象移进队列并开始发送( 通常来自序列化器 CutData. 也可以 xx::Data(buf, len) 临时构造 )
+		virtual int Send(Data&& data) = 0;
 
 		// 立刻开始发送数据
 		virtual int Flush() = 0;
@@ -226,13 +227,13 @@ namespace xx::Epoll {
 		bool writing = false;
 
 		// 待发送队列
-		xx::BufQueue sendQueue;
+		xx::DataQueue sendQueue;
 
 		// 每 fd 每一次可写, 写入的长度限制( 希望能实现当大量数据下发时各个 socket 公平的占用带宽 )
 		size_t sendLenPerFrame = 65536;
 
 		virtual void OnEpollEvent(uint32_t const& e) override;
-		virtual int Send(xx::Buf&& data) override;
+		virtual int Send(Data&& data) override;
 		virtual int Send(char const* const& buf, size_t const& len) override;
 		virtual int Flush() override;
 	protected:
@@ -288,7 +289,7 @@ namespace xx::Epoll {
 
 	struct UdpPeer : Peer {
 		virtual void OnEpollEvent(uint32_t const& e) override;
-		virtual int Send(xx::Buf&& data) override;
+		virtual int Send(Data&& data) override;
 		virtual int Send(char const* const& buf, size_t const& len) override;	// 直接发送, 不压队列
 		virtual int Flush() override;
 	};
@@ -366,7 +367,7 @@ namespace xx::Epoll {
 		// 回收 kcp 对象, 从 ep->kcps 移除
 		~KcpPeer();
 
-		virtual int Send(xx::Buf&& data) override;
+		virtual int Send(Data&& data) override;
 		virtual int Send(char const* const& buf, size_t const& len) override;
 		virtual int Flush() override;
 	};
@@ -550,11 +551,14 @@ namespace xx::Epoll {
 		// for recv safe check
 		uint32_t maxPackageLength = 1024 * 256;
 
-		// 公用反序列化 bb. 直接用 Reset 来替换内存使用. 
-		BBuffer recvBB;
+		// 公用序列化器
+		Serializer serializer;
 
-		// 公用序列化 bb
-		BBuffer sendBB;
+		// 公用序列化 写入引用对象时用于理清引用关系的 指针 字典
+		std::shared_ptr<std::unordered_map<void*, size_t>> ptrs;
+
+		// 公用序列化 读出引用对象时用于理清引用关系的 下标 字典
+		std::shared_ptr<std::unordered_map<size_t, std::shared_ptr<Object>>> idxs;
 
 		// 公用 args( 已用于 cmds 传参 )
 		std::vector<std::string> args;

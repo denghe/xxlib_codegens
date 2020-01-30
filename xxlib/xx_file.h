@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "xx_string.h"
-#include "xx_bbuffer.h"
+#include "xx_serializer.h"
 #include <fstream>
 #include <filesystem>
 #include <string_view>
@@ -23,7 +23,7 @@ namespace xx
 		}
 	};
 
-	inline int ReadAllBytes(std::filesystem::path const& path, BBuffer& bb) noexcept {
+	inline int ReadAllBytes(std::filesystem::path const& path, Serializer& bb) noexcept {
 		std::ifstream f(path, std::ifstream::binary);
 		if (!f) return -1;						// not found? no permission? locked?
 		xx::ScopeGuard sg([&] { f.close(); });
@@ -65,7 +65,7 @@ namespace xx
 		return 0;
 	}
 
-	inline int WriteAllBytes(std::filesystem::path const& path, BBuffer const& bb) noexcept {
+	inline int WriteAllBytes(std::filesystem::path const& path, Serializer const& bb) noexcept {
 		return WriteAllBytes(path, (char*)bb.buf, bb.len);
 	}
 

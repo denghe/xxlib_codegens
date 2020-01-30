@@ -27,12 +27,11 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_epoll_tcp_ex.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_guid.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_itempool.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)xx_bbuffer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_serializer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_coros_boost.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_dict.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_epoll.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)xx_buf.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)xx_buf_queue.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_data_queue.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_file.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_http.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_list.h" />

@@ -11,8 +11,8 @@ namespace xx {
 
 		// 序列化相关
 		inline virtual uint16_t GetTypeId() const noexcept { return 0; }
-		inline virtual void ToBBuffer(BBuffer& bb) const noexcept { (void)bb; }
-		inline virtual int FromBBuffer(BBuffer& bb) noexcept { (void)bb; return 0; }
+		inline virtual void ToBBuffer(Serializer& bb) const noexcept { (void)bb; }
+		inline virtual int FromBBuffer(Deserializer& bb) noexcept { (void)bb; return 0; }
 
 		// 字串输出相关
 		inline virtual void ToString(std::string& s) const noexcept { (void)s; };
@@ -61,7 +61,7 @@ namespace xx {
 		}
 	};
 
-	// BFuncs 适配在 xx_bbuffer.h
+	// BFuncs 适配在 xx_serializer.h
 
 	template<typename T>
 	struct CFuncs<std::shared_ptr<T>, std::enable_if_t<std::is_base_of_v<xx::Object, T>>> {

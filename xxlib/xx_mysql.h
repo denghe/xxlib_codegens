@@ -81,7 +81,7 @@ namespace xx
 				return std::string(data[colIdx], lengths[colIdx]);
 			}
 
-			// todo: BBuffer? more types support?
+			// todo: Serializer? more types support?
 
 			// 填充( 不做 数据类型校验. char* 能成功转为目标类型就算成功 )
 			template<typename T>

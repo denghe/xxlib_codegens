@@ -1,24 +1,25 @@
 ﻿#pragma once
-#include "xx_buf.h"
+#include "xx_data.h"
+#include "xx_queue.h"
 namespace xx {
-	// buf 队列。提供按字节数 pop 的功能
-	struct BufQueue : protected Queue<Buf> {
-		typedef Queue<Buf> BaseType;
+	// Data 队列。提供按字节数 pop 的功能
+	struct DataQueue : protected Queue<Data> {
+		typedef Queue<Data> BaseType;
 		size_t bytes = 0;											// 剩余字节数 = sum( bufs.len ) - offset, pop & push 时会变化
 		size_t offset = 0;											// 队列头部包已 pop 字节数
 
-		BufQueue(BufQueue const& o) = delete;
-		BufQueue& operator=(BufQueue const& o) = delete;
+		DataQueue(DataQueue const& o) = delete;
+		DataQueue& operator=(DataQueue const& o) = delete;
 
-		explicit BufQueue(size_t const& capacity = 8)
+		explicit DataQueue(size_t const& capacity = 8)
 			: BaseType(capacity) {
 		}
 
-		BufQueue(BufQueue&& o)
+		DataQueue(DataQueue&& o)
 			: BaseType((BaseType&&)o) {
 		}
 
-		~BufQueue() {
+		~DataQueue() {
 			Clear();
 		}
 
@@ -28,17 +29,17 @@ namespace xx {
 			offset = 0;
 			if (renewBuf) {
 				free(buf);
-				auto bufByteLen = Round2n(8 * sizeof(Buf));
-				buf = (Buf*)malloc((size_t)bufByteLen);
+				auto siz = Round2n(8 * sizeof(Data));
+				buf = (Data*)malloc((size_t)siz);
 				assert(buf);
-				cap = size_t(bufByteLen / sizeof(Buf));
+				cap = size_t(siz / sizeof(Data));
 			}
 		}
 
-		void Push(Buf&& eb) {
-			assert(eb.len);
-			bytes += eb.len;
-			this->BaseType::Push(std::move(eb));
+		void Push(Data&& o) {
+			assert(o.len);
+			bytes += o.len;
+			this->BaseType::Push(std::move(o));
 		}
 
 		// 弹出指定字节数 for writev 返回值 < bufLen 的情况
@@ -63,7 +64,7 @@ namespace xx {
 			}
 		}
 
-		// 弹出指定个数 buf 并直接设定 offset ( 完整发送的情况 )
+		// 弹出指定长度字节 并直接设定 offset ( 完整发送的情况 )
 		void Pop(int const& vsLen, size_t const& offset, size_t const& bufLen) {
 			bytes -= bufLen;
 			if (vsLen == 1 && Top().len > this->offset + bufLen) {

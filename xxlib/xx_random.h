@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "xx_string.h"
-#include "xx_bbuffer.h"
+#include "xx_serializer.h"
 namespace xx {
 	// 从 .NET System.Random 翻写, 理论上讲相同种子能输出相同结果. 支持序列化.
 	// 必须传入种子
@@ -169,7 +169,7 @@ namespace xx {
 		//**Arugments:  buffer -- the array to be filled.
 		//**Exceptions: None
 		//==============================================================================*/
-		//void NextBytes(BBuffer* buffer);
+		//void NextBytes(Serializer* buffer);
 
 		inline double NextDouble(double const& minValue, double const& maxValue) noexcept {
 			if (minValue == maxValue || maxValue - minValue <= 0) return minValue;
@@ -190,10 +190,10 @@ namespace xx {
 
 	template<>
 	struct BFuncs<Random, void> {
-		static inline void Write(BBuffer& bb, Random const& in) noexcept {
+		static inline void Write(Serializer& bb, Random const& in) noexcept {
 			bb.AddRange((uint8_t*)&in, sizeof(Random));
 		}
-		static inline int Read(BBuffer& bb, Random& out) noexcept {
+		static inline int Read(Serializer& bb, Random& out) noexcept {
 			if (bb.offset + sizeof(Random) > bb.len) return -1;
 			memcpy((char*)&out, bb.buf + bb.offset, sizeof(Random));
 			bb.offset += sizeof(Random);

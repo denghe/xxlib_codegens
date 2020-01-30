@@ -276,11 +276,11 @@ namespace xx::Epoll {
 	}
 
 	inline int TcpPeer::Send(char const* const& buf, size_t const& len) {
-		sendQueue.Push(xx::Buf(buf, len));
+		sendQueue.Push(Data(buf, len));
 		return !writing ? Write() : 0;
 	}
 
-	inline int TcpPeer::Send(xx::Buf&& data) {
+	inline int TcpPeer::Send(Data&& data) {
 		sendQueue.Push(std::move(data));
 		return !writing ? Write() : 0;
 	}
@@ -370,7 +370,7 @@ namespace xx::Epoll {
 		}
 
 		// 确保退出时自动关闭 fd
-		xx::ScopeGuard sg([&] { close(fd); });
+		ScopeGuard sg([&] { close(fd); });
 
 		// 如果 fd 超出最大存储限制就退出。返回 fd 是为了外部能继续执行 accept
 		if (fd >= (int)ep->fdMappings.size()) return fd;
@@ -402,6 +402,9 @@ namespace xx::Epoll {
 
 		// 撤销自动关闭
 		sg.Cancel();
+
+		// 初始化 recv
+		p->recv.idxs = ep->idxs;
 
 		// 初始化
 		Ref<TcpPeer> alive(p);
@@ -491,7 +494,7 @@ namespace xx::Epoll {
 		// write: 当前 udp 不启用发送队列
 	}
 
-	inline int UdpPeer::Send(xx::Buf&& data) {
+	inline int UdpPeer::Send(Data&& data) {
 		auto r = sendto(fd, data.buf, data.len, 0, (sockaddr*)&addr, sizeof(addr));
 		return r > 0 ? 0 : (int)r;
 	}
@@ -608,6 +611,9 @@ namespace xx::Epoll {
 			// 放入容器
 			p = ep->AddItem(std::move(peer));
 			kcps.Add(conv, p);
+
+			// 初始化 recv
+			p->recv.idxs = ep->idxs;
 
 			// 初始化
 			Ref<KcpPeer> alive(p);
@@ -735,7 +741,7 @@ namespace xx::Epoll {
 		}
 	};
 
-	inline int KcpPeer::Send(xx::Buf&& data) {
+	inline int KcpPeer::Send(Data&& data) {
 		return ikcp_send(kcp, (char*)data.buf, (int)data.len);
 	}
 
@@ -1177,6 +1183,11 @@ namespace xx::Epoll {
 		efd = epoll_create1(0);
 		if (-1 == efd) throw - 1;
 
+		// 公用组件初始化
+		xx::MakeTo(ptrs);
+		xx::MakeTo(idxs);
+		serializer.ptrs = ptrs;
+
 		// 初始化时间伦
 		wheel.resize(wheelLen);
 
@@ -1185,9 +1196,6 @@ namespace xx::Epoll {
 	}
 
 	inline Context::~Context() {
-		// 直接清掉内存. 非正常析构.
-		recvBB.Reset();
-
 		// 所有 items 析构
 		items.Clear();
 

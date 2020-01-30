@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "xx_bbuffer.h"
+#include "xx_serializer.h"
 #include <boost/context/all.hpp>
 
 namespace xx {

@@ -1,49 +1,37 @@
 ﻿#pragma once
 #include "xx_object.h"
-#include "xx_list.h"
+#include "xx_data.h"
 namespace xx {
-	struct BBuffer : List<uint8_t> {
-		using BaseType = List<uint8_t>;
-
-		// 读指针偏移量
-		size_t offset = 0;
-
+	// 序列化器 / 发送数据构造器
+	struct Serializer : Data {
 		// offset值写入修正
 		size_t offsetRoot = 0;
 
 		// 写入引用对象时用于理清引用关系的 指针 字典
 		std::shared_ptr<std::unordered_map<void*, size_t>> ptrs;
 
-		// 读出引用对象时用于理清引用关系的 下标 字典
-		std::shared_ptr<std::unordered_map<size_t, std::shared_ptr<Object>>> idxs;
+		// 继承基类所有构造函数
+		using Data::Data;
 
+		// 复制构造
+		Serializer(Serializer const&) = default;
+		Serializer& operator=(Serializer const&) = default;
 
-
-		BBuffer() : BaseType() {}
-		BBuffer(BBuffer&& o) noexcept
-			: BaseType(std::move(o))
-			, offset(o.offset) {
-			o.offset = 0;
+		// 移动构造
+		Serializer(Serializer&& o) {
+			this->operator=(std::move(o));
 		}
-		inline BBuffer& operator=(BBuffer&& o) noexcept {
-			this->BaseType::operator=(std::move(o));
-			std::swap(offset, o.offset);
-			// ptrs, idxs 因为是临时数据, 不需要处理
+		inline Serializer& operator=(Serializer&& o) {
+			this->Data::operator=(std::move(o));
+			std::swap(offsetRoot, o.offsetRoot);
+			std::swap(ptrs, o.ptrs);
 			return *this;
 		}
-		BBuffer(BBuffer const&) = delete;
-		BBuffer& operator=(BBuffer const&) = delete;
 
-
-
-		// unsafe: 直接篡改内存( 常见于公用借壳 reader bb )
-		inline void Reset(uint8_t* const& buf = nullptr, size_t const& len = 0, size_t const& cap = 0, size_t const& offset = 0) noexcept {
-			this->buf = buf;
-			this->len = len;
-			this->cap = cap;
-			this->offset = offset;
+		// 将数据切割 / 挪走. 当前实例数据将被清空. 通常用于发送
+		inline Data GetData() {
+			return Data(std::move(*this));
 		}
-
 
 		// 定长写
 		template<typename T, typename ENABLED = std::enable_if_t<std::is_pod_v<T>>>
@@ -52,16 +40,6 @@ namespace xx {
 			memcpy(buf + len, &v, sizeof(T));
 			len += sizeof(T);
 		}
-
-		// 定长读
-		template<typename T, typename ENABLED = std::enable_if_t<std::is_pod_v<T>>>
-		int ReadFixed(T& v) {
-			if (offset + sizeof(T) > len) return -1;
-			memcpy(&v, buf + offset, sizeof(T));
-			offset += sizeof(T);
-			return 0;
-		}
-
 
 		// 变长写
 		template<typename T, bool needReserve = true>
@@ -75,10 +53,121 @@ namespace xx {
 				Reserve(len + sizeof(T) + 1);
 			}
 			while (u >= 1 << 7) {
-				buf[len++] = uint8_t((u & 0x7fu) | 0x80u);
+				buf[len++] = char((u & 0x7fu) | 0x80u);
 				u = UT(u >> 7);
 			};
-			buf[len++] = uint8_t(u);
+			buf[len++] = char(u);
+		}
+
+		// 同时写多个
+		template<typename ...TS>
+		void Write(TS const& ...vs) {
+			std::initializer_list<int> n{ (BFuncs<TS>::Write(*this, vs), 0)... };
+			(void)n;
+		}
+
+		// 写 一组关联数据( 会为追踪引用关系准备字典 )
+		template<typename ...TS>
+		void WriteRoot(TS const&...vs) {
+			if (!ptrs) {
+				MakeTo(ptrs);
+			}
+			assert(ptrs->empty());
+			offsetRoot = len;
+			Write(vs...);
+			ptrs->clear();
+		}
+
+		// 写 引用类实例
+		template<typename T, typename ENABLED = std::enable_if_t<std::is_base_of_v<Object, T>>>
+		void WritePtr(std::shared_ptr<T> const& v) {
+			uint16_t typeId = 0;
+			if (!v) {
+				Write(typeId);
+				return;
+			}
+			typeId = v->GetTypeId();
+			assert(typeId);					// forget Register TypeId ? 
+			Write(typeId);
+
+			auto iter = ptrs->find((void*)&*v);
+			size_t offs;
+			if (iter == ptrs->end()) {
+				offs = len - offsetRoot;
+				(*ptrs)[(void*)&*v] = offs;
+			}
+			else {
+				offs = iter->second;
+			}
+			Write(offs);
+			if (iter == ptrs->end()) {
+				v->ToBBuffer(*this);
+			}
+		}
+	};
+
+	// 反序列化器 / 解包器
+	struct Deserializer : Data {
+		// 读指针偏移量
+		size_t offset = 0;
+
+		// offset值写入修正
+		size_t offsetRoot = 0;
+
+		// 读出引用对象时用于理清引用关系的 下标 字典
+		std::shared_ptr<std::unordered_map<size_t, std::shared_ptr<Object>>> idxs;
+
+		// 继承基类所有构造函数
+		using Data::Data;
+
+		// 复制构造
+		Deserializer(Deserializer const&) = default;
+		Deserializer& operator=(Deserializer const&) = default;
+
+		// 移动构造
+		Deserializer(Deserializer&& o) {
+			this->operator=(std::move(o));
+		}
+		inline Deserializer& operator=(Deserializer&& o) {
+			this->Data::operator=(std::move(o));
+			std::swap(offset, o.offset);
+			std::swap(offsetRoot, o.offsetRoot);
+			std::swap(idxs, o.idxs);
+			return *this;
+		}
+
+
+		//// unsafe: 直接篡改内存( 常见于公用借壳 reader bb )
+		//inline void Reset(char* const& buf = nullptr, size_t const& len = 0, size_t const& cap = 0, size_t const& offset = 0) {
+		//	this->buf = buf;
+		//	this->len = len;
+		//	this->cap = cap;
+		//	this->offset = offset;
+		//}
+
+		// 与目标 Data 交焕数据. 同时, offset 也会被清 0. 通常用于收到 Data 后想反序列化.
+		inline void SetData(Data& o) {
+			assert(!Readonly());
+			assert(!o.Readonly());
+			this->Data::operator=(std::move(o));
+			this->offset = 0;
+		}
+
+
+		// len 和 offset 清 0, 可彻底释放 buf
+		inline void Clear(bool const& freeBuf = false) {
+			this->Data::Clear(freeBuf);
+			offset = 0;
+		}
+
+
+		// 定长读
+		template<typename T, typename ENABLED = std::enable_if_t<std::is_pod_v<T>>>
+		int ReadFixed(T& v) {
+			if (offset + sizeof(T) > len) return -1;
+			memcpy(&v, buf + offset, sizeof(T));
+			offset += sizeof(T);
+			return 0;
 		}
 
 		// 变长读
@@ -103,28 +192,20 @@ namespace xx {
 			return -10;
 		}
 
-
-		// 同时写多个
-		template<typename ...TS>
-		void Write(TS const& ...vs) noexcept {
-			std::initializer_list<int> n{ (BFuncs<TS>::Write(*this, vs), 0)... };
-			(void)n;
-		}
-
 		template<typename T, typename ...TS>
-		int ReadCore(T& v, TS&...vs) noexcept {
+		int ReadCore(T& v, TS&...vs) {
 			if (auto r = BFuncs<T>::Read(*this, v)) return r;
 			return ReadCore(vs...);
 		}
 
 		template<typename T>
-		int ReadCore(T& v) noexcept {
+		int ReadCore(T& v) {
 			return BFuncs<T>::Read(*this, v);
 		}
 
 		// 同时读多个
 		template<typename ...TS>
-		int Read(TS&...vs) noexcept {
+		int Read(TS&...vs) {
 			return ReadCore(vs...);
 		}
 
@@ -141,16 +222,16 @@ namespace xx {
 			return 0;
 		}
 
-		// 读 BBuffer 同时检查长度限制
+		// 读 Data 同时检查长度限制
 		template<size_t limit>
-		int ReadLimit(BBuffer& out) {
+		int ReadLimit(Data& out) {
 			assert(&out != this);
 			size_t siz = 0;
 			if (auto r = Read(siz)) return r;
 			if (limit && siz > limit) return -1;
 			if (offset + siz > len) return -2;
 			out.Clear();
-			out.AddRange(buf + offset, siz);
+			out.WriteBuf(buf + offset, siz);
 			offset += siz;
 			return 0;
 		}
@@ -186,22 +267,9 @@ namespace xx {
 		}
 
 
-
-		// 写 一组关联数据( 会为追踪引用关系准备字典 )
-		template<typename ...TS>
-		void WriteRoot(TS const&...vs) noexcept {
-			if (!ptrs) {
-				MakeTo(ptrs);
-			}
-			assert(ptrs->empty());
-			offsetRoot = len;
-			Write(vs...);
-			ptrs->clear();
-		}
-
 		// 读 一组关联数据( 会为追踪引用关系准备字典 )
 		template<typename ...TS>
-		int ReadRoot(TS&...vs) noexcept {
+		int ReadRoot(TS&...vs) {
 			if (!idxs) {
 				MakeTo(idxs);
 			}
@@ -212,37 +280,9 @@ namespace xx {
 			return r;
 		}
 
-
-		// 写 引用类实例
-		template<typename T, typename ENABLED = std::enable_if_t<std::is_base_of_v<Object, T>>>
-		void WritePtr(std::shared_ptr<T> const& v) noexcept {
-			uint16_t typeId = 0;
-			if (!v) {
-				Write(typeId);
-				return;
-			}
-			typeId = v->GetTypeId();
-			assert(typeId);					// forget Register TypeId ? 
-			Write(typeId);
-
-			auto iter = ptrs->find((void*)&*v);
-			size_t offs;
-			if (iter == ptrs->end()) {
-				offs = len - offsetRoot;
-				(*ptrs)[(void*)&*v] = offs;
-			}
-			else {
-				offs = iter->second;
-			}
-			Write(offs);
-			if (iter == ptrs->end()) {
-				v->ToBBuffer(*this);
-			}
-		}
-
 		// 读 引用类实例
 		template<typename T, typename ENABLED = std::enable_if_t<std::is_base_of_v<Object, T>>>
-		int ReadPtr(std::shared_ptr<T>& v) noexcept {
+		int ReadPtr(std::shared_ptr<T>& v) {
 			v.reset();
 			uint16_t typeId;
 			if (auto r = Read(typeId)) return r;
@@ -280,7 +320,7 @@ namespace xx {
 
 		// 注册类实例创建函数
 		template<typename T, typename ENABLED = std::enable_if_t<std::is_base_of_v<Object, T>>>
-		inline static void Register(uint16_t const& typeId) noexcept {
+		inline static void Register(uint16_t const& typeId) {
 			creators[typeId] = []()->std::shared_ptr<Object> { return xx::TryMake<T>(); };
 		}
 
@@ -290,38 +330,24 @@ namespace xx {
 		}
 	};
 
-
 	// 标识内存可移动
 	template<>
-	struct IsTrivial<BBuffer, void> : std::true_type {};
-
-	/**********************************************************************************************************************/
-	// 适配 SFuncs
-
+	struct IsTrivial<Serializer, void> : std::true_type {};	
 	template<>
-	struct SFuncs<BBuffer, void> {
-		static inline void Append(std::string& s, BBuffer const& in) noexcept {
-			xx::Append(s, "{ \"len\":", in.len, ", \"cap\":", in.cap, ", \"offset\":", in.offset, ", \"buf\":[ ");
-			for (size_t i = 0; i < in.len; i++) {
-				xx::Append(s, (int)in.buf[i], ", ");
-			}
-			if (in.len) s.resize(s.size() - 2);
-			s += " ] }";
-		}
-	};
+	struct IsTrivial<Deserializer, void> : std::true_type {};
 
 	/**********************************************************************************************************************/
 	// 适配 BFuncs
 
-	// 适配 xx::BBuffer
+	// 适配 xx::Data
 	template<>
-	struct BFuncs<BBuffer, void> {
-		static inline void Write(BBuffer& bb, BBuffer const& in) noexcept {
+	struct BFuncs<Data, void> {
+		static inline void Write(Serializer& bb, Data const& in) {
 			assert(&in != &bb);
 			bb.Write(in.len);
-			bb.AddRange(in.buf, in.len);
+			bb.WriteBuf(in.buf, in.len);
 		}
-		static inline int Read(BBuffer& bb, BBuffer& out) noexcept {
+		static inline int Read(Deserializer& bb, Data& out) {
 			return bb.ReadLimit<0>(out);
 		}
 	};
@@ -329,12 +355,12 @@ namespace xx {
 	// 适配 1 字节长度的 数值 或 float( 这些类型直接 memcpy )
 	template<typename T>
 	struct BFuncs<T, std::enable_if_t< (std::is_arithmetic_v<T> && sizeof(T) == 1) || (std::is_floating_point_v<T> && sizeof(T) == 4) >> {
-		static inline void Write(BBuffer& bb, T const& in) noexcept {
+		static inline void Write(Serializer& bb, T const& in) {
 			bb.Reserve(bb.len + sizeof(T));
 			memcpy(bb.buf + bb.len, &in, sizeof(T));
 			bb.len += sizeof(T);
 		}
-		static inline int Read(BBuffer& bb, T& out) noexcept {
+		static inline int Read(Deserializer& bb, T& out) {
 			if (bb.offset + sizeof(T) > bb.len) return -12;
 			memcpy(&out, bb.buf + bb.offset, sizeof(T));
 			bb.offset += sizeof(T);
@@ -345,10 +371,10 @@ namespace xx {
 	// 适配 2+ 字节整数( 变长读写 )
 	template<typename T>
 	struct BFuncs<T, std::enable_if_t<std::is_integral_v<T> && sizeof(T) >= 2>> {
-		static inline void Write(BBuffer& bb, T const& in) noexcept {
+		static inline void Write(Serializer& bb, T const& in) {
 			bb.WriteVarIntger(in);
 		}
-		static inline int Read(BBuffer& bb, T& out) noexcept {
+		static inline int Read(Deserializer& bb, T& out) {
 			return bb.ReadVarInteger(out);
 		}
 	};
@@ -357,10 +383,10 @@ namespace xx {
 	template<typename T>
 	struct BFuncs<T, std::enable_if_t<std::is_enum_v<T>>> {
 		typedef std::underlying_type_t<T> UT;
-		static inline void Write(BBuffer& bb, T const& in) noexcept {
+		static inline void Write(Serializer& bb, T const& in) {
 			bb.Write((UT const&)in);
 		}
-		static inline int Read(BBuffer& bb, T& out) noexcept {
+		static inline int Read(Deserializer& bb, T& out) {
 			return bb.Read((UT&)out);
 		}
 	};
@@ -368,7 +394,7 @@ namespace xx {
 	// 适配 double
 	template<>
 	struct BFuncs<double, void> {
-		static inline void Write(BBuffer& bb, double const& in) noexcept {
+		static inline void Write(Serializer& bb, double const& in) {
 			bb.Reserve(bb.len + sizeof(double) + 1);
 			if (in == 0) {
 				bb.buf[bb.len++] = 0;
@@ -395,7 +421,7 @@ namespace xx {
 				}
 			}
 		}
-		static inline int Read(BBuffer& bb, double& out) noexcept {
+		static inline int Read(Deserializer& bb, double& out) {
 			if (bb.offset >= bb.len) return -13;	// 确保还有 1 字节可读
 			switch (bb.buf[bb.offset++]) {			// 跳过 1 字节
 			case 0:
@@ -432,11 +458,11 @@ namespace xx {
 	// 适配 literal char[len] string  ( 写入 变长长度-1 + 内容. 不写入末尾 0 )
 	template<size_t len>
 	struct BFuncs<char[len], void> {
-		static inline void Write(BBuffer& bb, char const(&in)[len]) noexcept {
+		static inline void Write(Serializer& bb, char const(&in)[len]) {
 			bb.Write((size_t)(len - 1));
-			bb.AddRange((uint8_t*)in, len - 1);
+			bb.WriteBuf((char*)in, len - 1);
 		}
-		static inline int Read(BBuffer& bb, char(&out)[len]) noexcept {
+		static inline int Read(Deserializer& bb, char(&out)[len]) {
 			size_t readLen = 0;
 			if (auto r = bb.Read(readLen)) return r;
 			if (bb.offset + readLen > bb.len) return -19;
@@ -451,11 +477,11 @@ namespace xx {
 	// 适配 std::string ( 写入 变长长度 + 内容 )
 	template<>
 	struct BFuncs<std::string, void> {
-		static inline void Write(BBuffer& bb, std::string const& in) noexcept {
+		static inline void Write(Serializer& bb, std::string const& in) {
 			bb.Write(in.size());
-			bb.AddRange((uint8_t*)in.data(), in.size());
+			bb.WriteBuf((char*)in.data(), in.size());
 		}
-		static inline int Read(BBuffer& bb, std::string& out) noexcept {
+		static inline int Read(Deserializer& bb, std::string& out) {
 			return bb.ReadLimit<0>(out);
 		}
 	};
@@ -465,16 +491,16 @@ namespace xx {
 	// 适配 std::optional<T>
 	template<typename T>
 	struct BFuncs<std::optional<T>, void> {
-		static inline void Write(BBuffer& bb, std::optional<T> const& in) noexcept {
+		static inline void Write(Serializer& bb, std::optional<T> const& in) {
 			if (in.has_value()) {
-				bb.Write((uint8_t)1, in.value());
+				bb.Write((char)1, in.value());
 			}
 			else {
-				bb.Write((uint8_t)0);
+				bb.Write((char)0);
 			}
 		}
-		static inline int Read(BBuffer& bb, std::optional<T>& out) noexcept {
-			uint8_t hasValue = 0;
+		static inline int Read(Deserializer& bb, std::optional<T>& out) {
+			char hasValue = 0;
 			if (int r = bb.Read(hasValue)) return r;
 			if (!hasValue) return 0;
 			if (!out.has_value()) {
@@ -487,7 +513,7 @@ namespace xx {
 	// 适配 std::vector<T>
 	template<typename T>
 	struct BFuncs<std::vector<T>, void> {
-		static inline void Write(BBuffer& bb, std::vector<T> const& in) noexcept {
+		static inline void Write(Serializer& bb, std::vector<T> const& in) {
 			auto buf = in.data();
 			auto len = in.size();
 			bb.Reserve(bb.len + 5 + len * sizeof(T));
@@ -503,7 +529,7 @@ namespace xx {
 				}
 			}
 		}
-		static inline int Read(BBuffer& bb, std::vector<T>& out) noexcept {
+		static inline int Read(Deserializer& bb, std::vector<T>& out) {
 			return bb.ReadLimit<0>(out);
 		}
 	};
@@ -511,10 +537,10 @@ namespace xx {
 	// 适配 std::shared_ptr<T : Object>
 	template<typename T>
 	struct BFuncs<std::shared_ptr<T>, std::enable_if_t<std::is_base_of_v<Object, T> || std::is_same_v<std::string, T>>> {
-		static inline void Write(BBuffer& bb, std::shared_ptr<T> const& in) noexcept {
+		static inline void Write(Serializer& bb, std::shared_ptr<T> const& in) {
 			bb.WritePtr(in);
 		}
-		static inline int Read(BBuffer& bb, std::shared_ptr<T>& out) noexcept {
+		static inline int Read(Deserializer& bb, std::shared_ptr<T>& out) {
 			return bb.ReadPtr(out);
 		}
 	};
@@ -522,7 +548,7 @@ namespace xx {
 	// 适配 std::weak_ptr<T : Object>
 	template<typename T>
 	struct BFuncs<std::weak_ptr<T>, std::enable_if_t<std::is_base_of_v<Object, T> || std::is_same_v<std::string, T>>> {
-		static inline void Write(BBuffer& bb, std::weak_ptr<T> const& in) noexcept {
+		static inline void Write(Serializer& bb, std::weak_ptr<T> const& in) {
 			if (auto ptr = in.lock()) {
 				bb.WritePtr(ptr);
 			}
@@ -530,7 +556,7 @@ namespace xx {
 				bb.Write((uint16_t)0);
 			}
 		}
-		static inline int Read(BBuffer& bb, std::weak_ptr<T>& out) noexcept {
+		static inline int Read(Deserializer& bb, std::weak_ptr<T>& out) {
 			std::shared_ptr<T> ptr;
 			if (int r = bb.ReadPtr(ptr)) return r;
 			out = ptr;
