@@ -1,5 +1,21 @@
-#include "xx_all.h"
+#include "xx_data.h"
 int main() {
+	{
+		xx::Data d;
+		d.AddRange("asdf", 4);
+		xx::Data d2;
+		d2 = std::move(d);
+		xx::Data d3(d2);
+		d3.InitRefs();
+		std::cout << d3.Refs() << std::endl;
+		{
+			auto d4 = d3;
+			std::cout << d3.Refs() << std::endl;
+			auto d5 = d4;
+			std::cout << d3.Refs() << std::endl;
+		}
+		std::cout << d3.Refs() << std::endl;
+	}
 	return 0;
 }
 

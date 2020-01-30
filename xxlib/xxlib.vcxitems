@@ -22,6 +22,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_astar.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_base.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_cout.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_data.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_epoll.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_epoll_tcp_ex.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_guid.h" />

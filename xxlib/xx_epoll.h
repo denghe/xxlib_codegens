@@ -114,9 +114,9 @@ namespace xx::Epoll {
 
 		Ref() = default;
 		Ref(Ref const&) = default;
-		Ref(Ref&&) = default;
+		Ref(Ref&&);
 		Ref& operator=(Ref const&) = default;
-		Ref& operator=(Ref&&) = default;
+		Ref& operator=(Ref&&);
 
 		template<typename U>
 		Ref& operator=(std::enable_if_t<std::is_base_of_v<T, U>, Ref<U>> const& o);

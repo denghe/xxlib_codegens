@@ -38,6 +38,24 @@ namespace xx::Epoll {
 	template<typename T>
 	inline Ref<T>::Ref(std::unique_ptr<T> const& ptr) : Ref(ptr.get()) {}
 
+	template<typename T>
+	inline Ref<T>::Ref(Ref&& o)
+		: items(o.items)
+		, index(o.index)
+		, version(o.version) {
+		o.items = nullptr;
+		o.index = -1;
+		o.version = 0;
+	}
+
+	template<typename T>
+	Ref<T>& Ref<T>::operator=(Ref&& o) {
+		std::swap(items, o.items);
+		std::swap(index, o.index);
+		std::swap(version, o.version);
+		return *this;
+	}
+
 
 	template<typename T>
 	template<typename U>

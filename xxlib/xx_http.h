@@ -7,9 +7,29 @@ namespace xx {
 	struct HttpContext {
 		HttpContext(HttpReceiver* parser) : parser(parser) {};
 		HttpContext(HttpContext const&) = delete;
-		HttpContext(HttpContext&&) = default;
 		HttpContext& operator=(HttpContext const&) = delete;
-		HttpContext& operator=(HttpContext&&) = default;
+		HttpContext(HttpContext&& o) {
+			operator=(std::move(o));
+		}
+		HttpContext& operator=(HttpContext&& o) {
+			std::swap(parser, o.parser);
+			std::swap(method, o.method);
+			std::swap(body, o.body);
+			std::swap(url, o.url);
+			std::swap(status, o.status);
+			std::swap(keepAlive, o.keepAlive);
+			std::swap(headers, o.headers);
+			std::swap(path, o.path);
+			std::swap(fragment, o.fragment);
+			std::swap(queries, o.queries);
+			std::swap(posts, o.posts);
+
+			std::swap(lastKey, o.lastKey);
+			std::swap(lastValue, o.lastValue);
+			std::swap(tmp, o.tmp);
+			std::swap(tmp2, o.tmp2);
+			return *this;
+		}
 
 		// 指向 parser
 		HttpReceiver* parser = nullptr;
@@ -177,9 +197,14 @@ namespace xx {
 	struct HttpResponse {
 		HttpResponse() = default;
 		HttpResponse(HttpResponse const&) = delete;
-		HttpResponse(HttpResponse&&) = default;
+		HttpResponse(HttpResponse&& o) {
+			operator=(std::move(o));
+		}
 		HttpResponse& operator=(HttpResponse const&) = delete;
-		HttpResponse& operator=(HttpResponse&&) = default;
+		HttpResponse& operator=(HttpResponse&& o) {
+			std::swap(output, o.output);
+			return *this;
+		}
 
 		// 公用输出拼接容器( 同一连接 跨请求, 原则上只能追加 不可清空, 否则可能破坏上个请求的输出 )
 		std::string output;
@@ -326,9 +351,16 @@ namespace xx {
 
 	struct HttpReceiver {
 		HttpReceiver(HttpReceiver const&) = delete;
-		HttpReceiver(HttpReceiver&&) = default;
+		HttpReceiver(HttpReceiver&& o) {
+			operator=(std::move(o));
+		}
 		HttpReceiver& operator=(HttpReceiver const&) = delete;
-		HttpReceiver& operator=(HttpReceiver&&) = default;
+		HttpReceiver& operator=(HttpReceiver&&o) {
+			std::swap(parser_settings, o.parser_settings);
+			std::swap(parser, o.parser);
+			std::swap(ctxs, o.ctxs);
+			return *this;
+		}
 
 		// 来自 libuv 作者的转换器及配置
 		http_parser_settings parser_settings;
