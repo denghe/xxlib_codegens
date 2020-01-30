@@ -9,7 +9,7 @@ int main() {
 		ds.SetData(d);
 		int i1, i2, i3, i4, i5;
 		auto r = ds.Read(i1, i2, i3, i4, i5);
-		xx::CoutN(r);
+		xx::CoutSN(r, i1, i2, i3, i4, i5);
 	}
 	//{
 	//	xx::Data d;

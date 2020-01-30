@@ -43,6 +43,19 @@ namespace xx {
 		fflush(stdout);
 	}
 
+
+	// 在每个 arg 之间添加个 tab, 最后换行
+	template<typename...Args>
+	inline void CoutSN(Args const& ...args) {
+		std::string s;
+		std::initializer_list<int> n{ ((AppendCore(s, args), AppendCore(s, "\t")), 0)... };
+		for (auto&& c : s) {
+			if (!c) c = '^';
+		}
+		std::cout << s << std::endl;
+	}
+
+
 	/************************************************************************************/
 	// 针对 windows cmd window 设置其输出字符形态为 utf8
 
