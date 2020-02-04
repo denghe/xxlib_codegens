@@ -10,6 +10,7 @@ public static class GenCPP_Class
     static void GenH_Include(this StringBuilder sb, string templateName)
     {
         sb.Append(@"#pragma once
+#include ""xx_serializer.h""
 #include""" + templateName + @"_class.inc""
 ");
     }
@@ -226,8 +227,8 @@ namespace xx {");
             sb.Append(@"
 	template<>
 	struct BFuncs<" + ctn + @", void> {
-		static void Write(BBuffer& bb, " + ctn + @" const& in) noexcept;
-		static int Read(BBuffer& bb, " + ctn + @"& out) noexcept;
+		static void Serialize(Serializer& bb, " + ctn + @" const& in) noexcept;
+		static int Deserialize(Deserializer& bb, " + ctn + @"& out) noexcept;
 	};
 	template<>
 	struct SFuncs<" + ctn + @", void> {
@@ -235,19 +236,18 @@ namespace xx {");
 		static void AppendCore(std::string& s, " + ctn + @" const& in) noexcept;
     };
 	template<>
-    struct IFuncs<" + ctn + @", void> {
-		static int InitCascade(void* const& o, " + ctn + @" const& in) noexcept;
-		static int InitCascadeCore(void* const& o, " + ctn + @" const& in) noexcept;
+    struct CFuncs<" + ctn + @", void> {
+		static int Cascade(void* const& o, " + ctn + @" const& in) noexcept;
+		static int CascadeCore(void* const& o, " + ctn + @" const& in) noexcept;
     };");
-            // todo: IFuncs? 
         }
 
-        // 遍历所有 type 及成员数据类型 生成  BBuffer.Register< T >( typeId ) 函数组
+        // 遍历所有 type 及成员数据类型 生成  Deserializer.Register< T >( typeId ) 函数组
         foreach (var kv in typeIds.types)
         {
             if (filter != null && !filter.Contains(kv.Key)) continue;
             var ct = kv.Key;
-            if (ct._IsString() || ct._IsBBuffer() || ct._IsExternal() && !ct._GetExternalSerializable()) continue;
+            if (ct._IsString() || ct._IsData() || ct._IsExternal() && !ct._GetExternalSerializable()) continue;
             var typeId = kv.Value;
             var ctn = ct._GetTypeDecl_Cpp(templateName);
 
@@ -265,7 +265,7 @@ namespace xx {");
     static void GenCPP_Include(this StringBuilder sb, string templateName, TemplateLibrary.Filter<TemplateLibrary.CppFilter> filter, List<Type> cs)
     {
         sb.Append(@"#include """ + templateName + "_class" + (filter != null ? "_filter" : "") + ".h" + @"""
-#ifdef NEED_INCLUDE_"+ templateName + @"_class" + (filter != null ? "_filter" : "") + "_hpp" + @"
+#ifdef NEED_INCLUDE_" + templateName + @"_class" + (filter != null ? "_filter" : "") + "_hpp" + @"
 #include """ + templateName + "_class" + (filter != null ? "_filter" : "") + ".hpp" + @"""
 #endif
 ");
@@ -288,12 +288,12 @@ namespace xx {");
         if (isThis)
         {
             sb.Append(@"
-    void " + c.Name + @"::ToBBuffer(xx::BBuffer& bb) const noexcept {");
+    void " + c.Name + @"::Serialize(xx::Serializer& bb) const noexcept {");
         }
         else
         {
             sb.Append(@"
-	void BFuncs<" + ctn + @", void>::Write(BBuffer& bb, " + ctn + @" const& in) noexcept {");
+	void BFuncs<" + ctn + @", void>::Serialize(Serializer& bb, " + ctn + @" const& in) noexcept {");
         }
 
         if (c._HasBaseType())
@@ -303,12 +303,12 @@ namespace xx {");
             if (isThis)
             {
                 sb.Append(@"
-        this->BaseType::ToBBuffer(bb);");
+        this->BaseType::Serialize(bb);");
             }
             else
             {
                 sb.Append(@"
-        BFuncs<" + btn + ">::Write(bb, in);");
+        BFuncs<" + btn + ">::Serialize(bb, in);");
             }
         }
 
@@ -339,12 +339,12 @@ namespace xx {");
         if (isThis)
         {
             sb.Append(@"
-    int " + c.Name + @"::FromBBuffer(xx::BBuffer& bb) noexcept {");
+    int " + c.Name + @"::Deserialize(xx::Deserializer& bb) noexcept {");
         }
         else
         {
             sb.Append(@"
-	int BFuncs<" + ctn + @", void>::Read(BBuffer& bb, " + ctn + @"& out) noexcept {");
+	int BFuncs<" + ctn + @", void>::Deserialize(Deserializer& bb, " + ctn + @"& out) noexcept {");
         }
 
         if (c._HasBaseType())
@@ -355,12 +355,12 @@ namespace xx {");
             if (isThis)
             {
                 sb.Append(@"
-        if (int r = this->BaseType::FromBBuffer(bb)) return r;");
+        if (int r = this->BaseType::Deserialize(bb)) return r;");
             }
             else
             {
                 sb.Append(@"
-        if (int r = BFuncs<" + btn + ">::Read(bb, out)) return r;");
+        if (int r = BFuncs<" + btn + ">::Deserialize(bb, out)) return r;");
             }
         }
 
@@ -369,14 +369,20 @@ namespace xx {");
         foreach (var f in fs)
         {
             if (f.FieldType._IsExternal() && !f.FieldType._GetExternalSerializable()) continue;
-            if (f.FieldType._IsContainer())
+            var funcName = new StringBuilder("Read");
+            var limits = f._GetLimits();
+            if (f.FieldType._IsContainer() && limits.Count > 0)
             {
-                sb.Append(@"
-        bb.readLengthLimit = " + f._GetLimit() + ";");
+                funcName.Append("Limit<");
+                foreach (var limit in limits)
+                {
+                    funcName.Append(limit.ToString() + ", ");
+                }
+                funcName.Length -= 2;
+                funcName.Append(">");
             }
-
             sb.Append(@"
-        if (int r = bb.Read(" + cn + f.Name + @")) return r;");
+        if (int r = bb." + funcName + "(" + cn + f.Name + @")) return r;");
         }
 
         sb.Append(@"
@@ -458,7 +464,7 @@ namespace xx {");
     }");
     }
 
-    static void GenCPP_InitCascades(this StringBuilder sb, string templateName, Type c, bool isThis = true)
+    static void GenCPP_Cascades(this StringBuilder sb, string templateName, Type c, bool isThis = true)
     {
         var ctn = c._GetTypeDecl_Cpp(templateName);
         sb.Append(@"
@@ -466,15 +472,15 @@ namespace xx {");
         if (isThis)
         {
             sb.Append(@"
-    int " + c.Name + @"::InitCascade(void* const& o) noexcept {
-        return this->InitCascadeCore(o);
+    int " + c.Name + @"::Cascade(void* const& o) noexcept {
+        return this->CascadeCore(o);
     }");
         }
         else
         {
             sb.Append(@"
-	int IFuncs<" + ctn + @", void>::InitCascade(void* const& o, " + ctn + @" const& in) noexcept {
-        return InitCascadeCore(o, in);
+	int CFuncs<" + ctn + @", void>::Cascade(void* const& o, " + ctn + @" const& in) noexcept {
+        return CascadeCore(o, in);
     }");
         }
         sb.Append(@"
@@ -483,12 +489,12 @@ namespace xx {");
         if (isThis)
         {
             sb.Append(@"
-    int " + c.Name + @"::InitCascadeCore(void* const& o) noexcept {");
+    int " + c.Name + @"::CascadeCore(void* const& o) noexcept {");
         }
         else
         {
             sb.Append(@"
-    int IFuncs<" + ctn + @", void>::InitCascadeCore(void* const& o, " + ctn + @" const& in) noexcept {");
+    int CFuncs<" + ctn + @", void>::CascadeCore(void* const& o, " + ctn + @" const& in) noexcept {");
         }
 
         if (c._HasBaseType())
@@ -497,13 +503,13 @@ namespace xx {");
             var btn = bt._GetTypeDecl_Cpp(templateName);
             if (isThis)
             {
-            sb.Append(@"
-        if (int r = this->BaseType::InitCascade(o)) return r;");
+                sb.Append(@"
+        if (int r = this->BaseType::Cascade(o)) return r;");
             }
             else
             {
                 sb.Append(@"
-        if (int r = IFuncs<" + btn + ">::InitCascadeCore(o, in)) return r;");
+        if (int r = CFuncs<" + btn + ">::CascadeCore(o, in)) return r;");
             }
         }
 
@@ -524,13 +530,13 @@ namespace xx {");
                 if (!ft._IsUserClass() || ft._IsShared() || ft._IsWeak() || ft._IsExternal() && !ft._GetExternalSerializable()) continue;
 
                 sb.Append(@"
-        if (int r = xx::InitCascade(o, " + cn + f.Name + @")) return r;");
+        if (int r = xx::Cascade(o, " + cn + f.Name + @")) return r;");
             }
             else
             {
                 sb.Append(@"
         if (" + cn + f.Name + @") {
-            if (int r = " + cn + f.Name + @"->InitCascade(o)) return r;
+            if (int r = " + cn + f.Name + @"->Cascade(o)) return r;
         }");
             }
         }
@@ -552,7 +558,7 @@ namespace xx {");
             sb.GenCPP_BBWrites(templateName, c, false);
             sb.GenCPP_BBReads(templateName, c, false);
             sb.GenCPP_StrAppends(templateName, c, false);
-            sb.GenCPP_InitCascades(templateName, c, false);
+            sb.GenCPP_Cascades(templateName, c, false);
         }
 
         sb.Append(@"
@@ -584,7 +590,7 @@ namespace " + c.Namespace.Replace(".", "::") + @" {");
             sb.GenCPP_BBWrites(templateName, c);
             sb.GenCPP_BBReads(templateName, c);
             sb.GenCPP_StrAppends(templateName, c);
-            sb.GenCPP_InitCascades(templateName, c);
+            sb.GenCPP_Cascades(templateName, c);
 
             // namespace }
             if (c.Namespace != null && ((i < cs.Count - 1 && cs[i + 1].Namespace != c.Namespace) || i == cs.Count - 1))
@@ -607,11 +613,11 @@ namespace " + templateName + @" {
         {
             var ct = kv.Key;
             if (filter != null && !filter.Contains(ct)) continue;
-            if (ct._IsString() || ct._IsBBuffer() || ct._IsExternal() && !ct._GetExternalSerializable()) continue;
+            if (ct._IsString() || ct._IsData() || ct._IsExternal() && !ct._GetExternalSerializable()) continue;
             var ctn = ct._GetTypeDecl_Cpp(templateName);
 
             sb.Append(@"
-	    xx::BBuffer::Register<" + ctn + @">(" + kv.Value + @");");
+	    xx::Deserializer::Register<" + ctn + @">(" + kv.Value + @");");
         }
         sb.Append(@"
 	}
@@ -625,16 +631,16 @@ namespace " + templateName + @" {
 
     static void GenInc(this StringBuilder sb)
     {
-        sb.Append(@"#include ""xx_bbuffer.h""
-#include ""xx_pos.h""
-#include ""xx_random.h""
-#include ""xx_dict.h""
-");
+        //        sb.Append(@"#include ""xx_data.h""
+        //#include ""xx_pos.h""
+        //#include ""xx_random.h""
+        //#include ""xx_dict.h""
+        //");
     }
     static void GenIncEnd(this StringBuilder sb)
     {
-        sb.Append(@"#include ""xx_random.hpp""
-");
+        //        sb.Append(@"#include ""xx_random.hpp""
+        //");
     }
 
 

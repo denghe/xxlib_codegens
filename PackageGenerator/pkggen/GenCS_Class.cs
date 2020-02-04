@@ -129,13 +129,13 @@ namespace " + c.Namespace + @"
             return xx.TypeId<" + c.Name + @">.value;
         }
 
-        public" + (c.IsValueType ? "" : " override") + @" void ToBBuffer(xx.BBuffer bb)
+        public" + (c.IsValueType ? "" : " override") + @" void Serialize(xx.BBuffer bb)
         {");
 
             if (!c.IsValueType && c._HasBaseType())
             {
                 sb.Append(@"
-            base.ToBBuffer(bb);");
+            base.Serialize(bb);");
             }
             fs = c._GetFields();
             foreach (var f in fs)
@@ -155,7 +155,7 @@ namespace " + c.Namespace + @"
                 else if (!ft._IsNullable() && ft.IsValueType && !ft.IsPrimitive)
                 {
                     sb.Append(@"
-            ((xx.IObject)this." + f.Name + ").ToBBuffer(bb);");
+            ((xx.IObject)this." + f.Name + ").Serialize(bb);");
                 }
                 else
                 {
@@ -378,7 +378,7 @@ namespace " + c.Namespace + @"
         foreach (var kv in typeIds.types)
         {
             var ct = kv.Key;
-            if (ct._IsString() || ct._IsBBuffer() || ct._IsExternal() && !ct._GetExternalSerializable()) continue;
+            if (ct._IsString() || ct._IsData() || ct._IsExternal() && !ct._GetExternalSerializable()) continue;
             var ctn = ct._GetTypeDecl_Cpp(templateName);
             var typeId = kv.Value;
 

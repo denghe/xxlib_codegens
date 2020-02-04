@@ -436,10 +436,10 @@ namespace xx {
 
 	template<typename T, typename ENABLED = void>
 	struct BFuncs {
-		static inline void Write(Serializer& s, T const& in) noexcept {
+		static inline void Serialize(Serializer& s, T const& in) noexcept {
 			assert(false);
 		}
-		static inline int Read(Deserializer& d, T& out) noexcept {
+		static inline int Deserialize(Deserializer& d, T& out) noexcept {
 			assert(false);
 			return 0;
 		}
@@ -703,12 +703,13 @@ typeName& operator=(typeName const&) = delete;							\
 																		\
 void ToString(std::string& s) const noexcept override;					\
 void ToStringCore(std::string& s) const noexcept override;				\
-uint16_t GetTypeId() const noexcept override;							\
-void ToBBuffer(xx::Serializer& bb) const noexcept override;				\
-int FromBBuffer(xx::Serializer& bb) noexcept override;						\
 																		\
-int InitCascade(void* const& o = nullptr) noexcept override;			\
-int InitCascadeCore(void* const& o = nullptr) noexcept;
+uint16_t GetTypeId() const noexcept override;							\
+void Serialize(xx::Serializer& bb) const noexcept override;				\
+int Deserialize(xx::Deserializer& bb) noexcept override;				\
+																		\
+int Cascade(void* const& o = nullptr) noexcept override;				\
+int CascadeCore(void* const& o = nullptr) noexcept;
 
 
 /************************************************************************************/

@@ -1,5 +1,6 @@
 #pragma once
 #include "xx_base.h"
+#include "xx_string.h"
 
 namespace xx {
 	// 最基础的二进制数据容器, bbuffer 的基类
@@ -174,7 +175,7 @@ namespace xx {
 
 	// 适配 xx::Data
 	template<>
-	struct SFuncs<Serializer, void> {
+	struct SFuncs<Data, void> {
 		static inline void Append(std::string& s, Data const& in) {
 			xx::Append(s, "{ \"len\":", in.len, ", \"cap\":", in.cap, ", \"buf\":[ ");
 			for (size_t i = 0; i < in.len; i++) {

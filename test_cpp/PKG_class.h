@@ -1,9 +1,10 @@
 ﻿#pragma once
+#include "xx_serializer.h"
 #include"PKG_class.inc"
 
 namespace PKG {
 	struct PkgGenMd5 {
-		inline static const std::string value = "#*MD5<60ce0d09b0eea83138153fe57a010cc9>*#";
+		inline static const std::string value = "#*MD5<94076235c63b9103fe5210391d41ce64>*#";
     };
 	struct AllTypesRegister {
         AllTypesRegister();
@@ -52,28 +53,28 @@ namespace NS1 {
         double _double = 0;
         bool _bool = false;
         std::string _string;
-        xx::BBuffer _bbuffer;
+        xx::Data _data;
     };
 }
     // 测试可空值类型
     struct A : PKG::NS1::A {
         std::optional<int32_t> nullable_int;
         std::optional<std::string> nullable_string;
-        std::optional<xx::BBuffer> nullable_bbuffer;
+        std::optional<xx::Data> nullable_data;
     };
 namespace NS3::NS4 {
     // 测试可空值类型数组
     struct A : PKG::A {
         std::vector<std::optional<int32_t>> list_nullable_int;
         std::vector<std::optional<std::string>> list_nullable_string;
-        std::vector<std::optional<xx::BBuffer>> list_nullable_bbuffer;
+        std::vector<std::optional<xx::Data>> list_nullable_data;
     };
 }
     // 测试可空可空值类型数组
     struct B : PKG::NS3::NS4::A {
         std::optional<std::vector<std::optional<int32_t>>> _int;
-        std::optional<std::vector<std::optional<std::string>>> _string;
-        std::optional<std::vector<std::optional<xx::BBuffer>>> _bbuffer;
+        std::optional<std::vector<std::optional<std::string>>> nullable_list_nullable_string;
+        std::optional<std::vector<std::optional<xx::Data>>> nullable_list_nullable_data;
     };
     // 包含结构体 B 用于收发. 测试多层 List + Limit
     struct Foo : ::xx::Object {
@@ -95,63 +96,63 @@ namespace NS3::NS4 {
 namespace xx {
 	template<>
 	struct BFuncs<PKG::NS1::A, void> {
-		static void Write(BBuffer& bb, PKG::NS1::A const& in) noexcept;
-		static int Read(BBuffer& bb, PKG::NS1::A& out) noexcept;
+		static void Serialize(Serializer& bb, PKG::NS1::A const& in) noexcept;
+		static int Deserialize(Deserializer& bb, PKG::NS1::A& out) noexcept;
 	};
 	template<>
 	struct SFuncs<PKG::NS1::A, void> {
-		static inline void Append(std::string& s, PKG::NS1::A const& in) noexcept;
-		static inline void AppendCore(std::string& s, PKG::NS1::A const& in) noexcept;
+		static void Append(std::string& s, PKG::NS1::A const& in) noexcept;
+		static void AppendCore(std::string& s, PKG::NS1::A const& in) noexcept;
     };
 	template<>
-    struct IFuncs<PKG::NS1::A, void> {
-		static inline int InitCascade(void* const& o, PKG::NS1::A const& in) noexcept;
-		static inline int InitCascadeCore(void* const& o, PKG::NS1::A const& in) noexcept;
+    struct CFuncs<PKG::NS1::A, void> {
+		static int Cascade(void* const& o, PKG::NS1::A const& in) noexcept;
+		static int CascadeCore(void* const& o, PKG::NS1::A const& in) noexcept;
     };
 	template<>
 	struct BFuncs<PKG::A, void> {
-		static void Write(BBuffer& bb, PKG::A const& in) noexcept;
-		static int Read(BBuffer& bb, PKG::A& out) noexcept;
+		static void Serialize(Serializer& bb, PKG::A const& in) noexcept;
+		static int Deserialize(Deserializer& bb, PKG::A& out) noexcept;
 	};
 	template<>
 	struct SFuncs<PKG::A, void> {
-		static inline void Append(std::string& s, PKG::A const& in) noexcept;
-		static inline void AppendCore(std::string& s, PKG::A const& in) noexcept;
+		static void Append(std::string& s, PKG::A const& in) noexcept;
+		static void AppendCore(std::string& s, PKG::A const& in) noexcept;
     };
 	template<>
-    struct IFuncs<PKG::A, void> {
-		static inline int InitCascade(void* const& o, PKG::A const& in) noexcept;
-		static inline int InitCascadeCore(void* const& o, PKG::A const& in) noexcept;
+    struct CFuncs<PKG::A, void> {
+		static int Cascade(void* const& o, PKG::A const& in) noexcept;
+		static int CascadeCore(void* const& o, PKG::A const& in) noexcept;
     };
 	template<>
 	struct BFuncs<PKG::NS3::NS4::A, void> {
-		static void Write(BBuffer& bb, PKG::NS3::NS4::A const& in) noexcept;
-		static int Read(BBuffer& bb, PKG::NS3::NS4::A& out) noexcept;
+		static void Serialize(Serializer& bb, PKG::NS3::NS4::A const& in) noexcept;
+		static int Deserialize(Deserializer& bb, PKG::NS3::NS4::A& out) noexcept;
 	};
 	template<>
 	struct SFuncs<PKG::NS3::NS4::A, void> {
-		static inline void Append(std::string& s, PKG::NS3::NS4::A const& in) noexcept;
-		static inline void AppendCore(std::string& s, PKG::NS3::NS4::A const& in) noexcept;
+		static void Append(std::string& s, PKG::NS3::NS4::A const& in) noexcept;
+		static void AppendCore(std::string& s, PKG::NS3::NS4::A const& in) noexcept;
     };
 	template<>
-    struct IFuncs<PKG::NS3::NS4::A, void> {
-		static inline int InitCascade(void* const& o, PKG::NS3::NS4::A const& in) noexcept;
-		static inline int InitCascadeCore(void* const& o, PKG::NS3::NS4::A const& in) noexcept;
+    struct CFuncs<PKG::NS3::NS4::A, void> {
+		static int Cascade(void* const& o, PKG::NS3::NS4::A const& in) noexcept;
+		static int CascadeCore(void* const& o, PKG::NS3::NS4::A const& in) noexcept;
     };
 	template<>
 	struct BFuncs<PKG::B, void> {
-		static void Write(BBuffer& bb, PKG::B const& in) noexcept;
-		static int Read(BBuffer& bb, PKG::B& out) noexcept;
+		static void Serialize(Serializer& bb, PKG::B const& in) noexcept;
+		static int Deserialize(Deserializer& bb, PKG::B& out) noexcept;
 	};
 	template<>
 	struct SFuncs<PKG::B, void> {
-		static inline void Append(std::string& s, PKG::B const& in) noexcept;
-		static inline void AppendCore(std::string& s, PKG::B const& in) noexcept;
+		static void Append(std::string& s, PKG::B const& in) noexcept;
+		static void AppendCore(std::string& s, PKG::B const& in) noexcept;
     };
 	template<>
-    struct IFuncs<PKG::B, void> {
-		static inline int InitCascade(void* const& o, PKG::B const& in) noexcept;
-		static inline int InitCascadeCore(void* const& o, PKG::B const& in) noexcept;
+    struct CFuncs<PKG::B, void> {
+		static int Cascade(void* const& o, PKG::B const& in) noexcept;
+		static int CascadeCore(void* const& o, PKG::B const& in) noexcept;
     };
     template<> struct TypeId<PKG::Foo> { static const uint16_t value = 13002; };
     template<> struct TypeId<PKG::Node> { static const uint16_t value = 13001; };

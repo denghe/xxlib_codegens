@@ -62,7 +62,7 @@ namespace xx {
 		// 同时写多个
 		template<typename ...TS>
 		void Write(TS const& ...vs) {
-			std::initializer_list<int> n{ (BFuncs<TS>::Write(*this, vs), 0)... };
+			std::initializer_list<int> n{ (BFuncs<TS>::Serialize(*this, vs), 0)... };
 			(void)n;
 		}
 
@@ -101,7 +101,7 @@ namespace xx {
 			}
 			Write(offs);
 			if (iter == ptrs->end()) {
-				v->ToBBuffer(*this);
+				v->Serialize(*this);
 			}
 		}
 	};
@@ -194,13 +194,13 @@ namespace xx {
 
 		template<typename T, typename ...TS>
 		int ReadCore(T& v, TS&...vs) {
-			if (auto r = BFuncs<T>::Read(*this, v)) return r;
+			if (auto r = BFuncs<T>::Deserialize(*this, v)) return r;
 			return ReadCore(vs...);
 		}
 
 		template<typename T>
 		int ReadCore(T& v) {
-			return BFuncs<T>::Read(*this, v);
+			return BFuncs<T>::Deserialize(*this, v);
 		}
 
 		// 同时读多个
@@ -237,7 +237,7 @@ namespace xx {
 		}
 
 		// 读 vector<vector<vector<... 同时检查长度限制
-		template<size_t limit, size_t ...limits, typename T, typename ENABLED = std::enable_if_t<xx::IsVector_v<T> && xx::DeepLevel_v<T> == sizeof...(limits)>>
+		template<size_t limit, size_t ...limits, typename T>//, typename ENABLED = std::enable_if_t<xx::IsVector_v<T> && xx::DeepLevel_v<T> == sizeof...(limits)>>
 		int ReadLimit(T& out) {
 			size_t siz = 0;
 			if (auto rtv = Read(siz)) return rtv;
@@ -299,7 +299,7 @@ namespace xx {
 				v = std::dynamic_pointer_cast<T>(o);
 				if (!v) return -4;
 				(*idxs)[ptrOffset] = o;
-				if (auto r = o->FromBBuffer(*this)) return r;
+				if (auto r = o->Deserialize(*this)) return r;
 			}
 			else {
 				auto iter = idxs->find(ptrOffset);
@@ -342,12 +342,12 @@ namespace xx {
 	// 适配 xx::Data
 	template<>
 	struct BFuncs<Data, void> {
-		static inline void Write(Serializer& bb, Data const& in) {
+		static inline void Serialize(Serializer& bb, Data const& in) {
 			assert(&in != &bb);
 			bb.Write(in.len);
 			bb.WriteBuf(in.buf, in.len);
 		}
-		static inline int Read(Deserializer& bb, Data& out) {
+		static inline int Deserialize(Deserializer& bb, Data& out) {
 			return bb.ReadLimit<0>(out);
 		}
 	};
@@ -355,12 +355,12 @@ namespace xx {
 	// 适配 1 字节长度的 数值 或 float( 这些类型直接 memcpy )
 	template<typename T>
 	struct BFuncs<T, std::enable_if_t< (std::is_arithmetic_v<T> && sizeof(T) == 1) || (std::is_floating_point_v<T> && sizeof(T) == 4) >> {
-		static inline void Write(Serializer& bb, T const& in) {
+		static inline void Serialize(Serializer& bb, T const& in) {
 			bb.Reserve(bb.len + sizeof(T));
 			memcpy(bb.buf + bb.len, &in, sizeof(T));
 			bb.len += sizeof(T);
 		}
-		static inline int Read(Deserializer& bb, T& out) {
+		static inline int Deserialize(Deserializer& bb, T& out) {
 			if (bb.offset + sizeof(T) > bb.len) return -12;
 			memcpy(&out, bb.buf + bb.offset, sizeof(T));
 			bb.offset += sizeof(T);
@@ -371,10 +371,10 @@ namespace xx {
 	// 适配 2+ 字节整数( 变长读写 )
 	template<typename T>
 	struct BFuncs<T, std::enable_if_t<std::is_integral_v<T> && sizeof(T) >= 2>> {
-		static inline void Write(Serializer& bb, T const& in) {
+		static inline void Serialize(Serializer& bb, T const& in) {
 			bb.WriteVarIntger(in);
 		}
-		static inline int Read(Deserializer& bb, T& out) {
+		static inline int Deserialize(Deserializer& bb, T& out) {
 			return bb.ReadVarInteger(out);
 		}
 	};
@@ -383,10 +383,10 @@ namespace xx {
 	template<typename T>
 	struct BFuncs<T, std::enable_if_t<std::is_enum_v<T>>> {
 		typedef std::underlying_type_t<T> UT;
-		static inline void Write(Serializer& bb, T const& in) {
+		static inline void Serialize(Serializer& bb, T const& in) {
 			bb.Write((UT const&)in);
 		}
-		static inline int Read(Deserializer& bb, T& out) {
+		static inline int Deserialize(Deserializer& bb, T& out) {
 			return bb.Read((UT&)out);
 		}
 	};
@@ -394,7 +394,7 @@ namespace xx {
 	// 适配 double
 	template<>
 	struct BFuncs<double, void> {
-		static inline void Write(Serializer& bb, double const& in) {
+		static inline void Serialize(Serializer& bb, double const& in) {
 			bb.Reserve(bb.len + sizeof(double) + 1);
 			if (in == 0) {
 				bb.buf[bb.len++] = 0;
@@ -421,7 +421,7 @@ namespace xx {
 				}
 			}
 		}
-		static inline int Read(Deserializer& bb, double& out) {
+		static inline int Deserialize(Deserializer& bb, double& out) {
 			if (bb.offset >= bb.len) return -13;	// 确保还有 1 字节可读
 			switch (bb.buf[bb.offset++]) {			// 跳过 1 字节
 			case 0:
@@ -438,7 +438,7 @@ namespace xx {
 				return 0;
 			case 4: {
 				int32_t i = 0;
-				if (auto rtv = BFuncs<int32_t>::Read(bb, i)) return rtv;
+				if (auto rtv = BFuncs<int32_t>::Deserialize(bb, i)) return rtv;
 				out = i;
 				return 0;
 			}
@@ -458,11 +458,11 @@ namespace xx {
 	// 适配 literal char[len] string  ( 写入 变长长度-1 + 内容. 不写入末尾 0 )
 	template<size_t len>
 	struct BFuncs<char[len], void> {
-		static inline void Write(Serializer& bb, char const(&in)[len]) {
+		static inline void Serialize(Serializer& bb, char const(&in)[len]) {
 			bb.Write((size_t)(len - 1));
 			bb.WriteBuf((char*)in, len - 1);
 		}
-		static inline int Read(Deserializer& bb, char(&out)[len]) {
+		static inline int Deserialize(Deserializer& bb, char(&out)[len]) {
 			size_t readLen = 0;
 			if (auto r = bb.Read(readLen)) return r;
 			if (bb.offset + readLen > bb.len) return -19;
@@ -477,11 +477,11 @@ namespace xx {
 	// 适配 std::string ( 写入 变长长度 + 内容 )
 	template<>
 	struct BFuncs<std::string, void> {
-		static inline void Write(Serializer& bb, std::string const& in) {
+		static inline void Serialize(Serializer& bb, std::string const& in) {
 			bb.Write(in.size());
 			bb.WriteBuf((char*)in.data(), in.size());
 		}
-		static inline int Read(Deserializer& bb, std::string& out) {
+		static inline int Deserialize(Deserializer& bb, std::string& out) {
 			return bb.ReadLimit<0>(out);
 		}
 	};
@@ -491,7 +491,7 @@ namespace xx {
 	// 适配 std::optional<T>
 	template<typename T>
 	struct BFuncs<std::optional<T>, void> {
-		static inline void Write(Serializer& bb, std::optional<T> const& in) {
+		static inline void Serialize(Serializer& bb, std::optional<T> const& in) {
 			if (in.has_value()) {
 				bb.Write((char)1, in.value());
 			}
@@ -499,7 +499,7 @@ namespace xx {
 				bb.Write((char)0);
 			}
 		}
-		static inline int Read(Deserializer& bb, std::optional<T>& out) {
+		static inline int Deserialize(Deserializer& bb, std::optional<T>& out) {
 			char hasValue = 0;
 			if (int r = bb.Read(hasValue)) return r;
 			if (!hasValue) return 0;
@@ -513,7 +513,7 @@ namespace xx {
 	// 适配 std::vector<T>
 	template<typename T>
 	struct BFuncs<std::vector<T>, void> {
-		static inline void Write(Serializer& bb, std::vector<T> const& in) {
+		static inline void Serialize(Serializer& bb, std::vector<T> const& in) {
 			auto buf = in.data();
 			auto len = in.size();
 			bb.Reserve(bb.len + 5 + len * sizeof(T));
@@ -529,7 +529,7 @@ namespace xx {
 				}
 			}
 		}
-		static inline int Read(Deserializer& bb, std::vector<T>& out) {
+		static inline int Deserialize(Deserializer& bb, std::vector<T>& out) {
 			return bb.ReadLimit<0>(out);
 		}
 	};
@@ -537,10 +537,10 @@ namespace xx {
 	// 适配 std::shared_ptr<T : Object>
 	template<typename T>
 	struct BFuncs<std::shared_ptr<T>, std::enable_if_t<std::is_base_of_v<Object, T> || std::is_same_v<std::string, T>>> {
-		static inline void Write(Serializer& bb, std::shared_ptr<T> const& in) {
+		static inline void Serialize(Serializer& bb, std::shared_ptr<T> const& in) {
 			bb.WritePtr(in);
 		}
-		static inline int Read(Deserializer& bb, std::shared_ptr<T>& out) {
+		static inline int Deserialize(Deserializer& bb, std::shared_ptr<T>& out) {
 			return bb.ReadPtr(out);
 		}
 	};
@@ -548,7 +548,7 @@ namespace xx {
 	// 适配 std::weak_ptr<T : Object>
 	template<typename T>
 	struct BFuncs<std::weak_ptr<T>, std::enable_if_t<std::is_base_of_v<Object, T> || std::is_same_v<std::string, T>>> {
-		static inline void Write(Serializer& bb, std::weak_ptr<T> const& in) {
+		static inline void Serialize(Serializer& bb, std::weak_ptr<T> const& in) {
 			if (auto ptr = in.lock()) {
 				bb.WritePtr(ptr);
 			}
@@ -556,7 +556,7 @@ namespace xx {
 				bb.Write((uint16_t)0);
 			}
 		}
-		static inline int Read(Deserializer& bb, std::weak_ptr<T>& out) {
+		static inline int Deserialize(Deserializer& bb, std::weak_ptr<T>& out) {
 			std::shared_ptr<T> ptr;
 			if (int r = bb.ReadPtr(ptr)) return r;
 			out = ptr;

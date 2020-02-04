@@ -49,6 +49,7 @@ namespace xx {
 	inline void CoutSN(Args const& ...args) {
 		std::string s;
 		std::initializer_list<int> n{ ((AppendCore(s, args), AppendCore(s, "\t")), 0)... };
+		(void)n;
 		for (auto&& c : s) {
 			if (!c) c = '^';
 		}

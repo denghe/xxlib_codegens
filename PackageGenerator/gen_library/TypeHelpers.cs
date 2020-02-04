@@ -209,20 +209,20 @@ public static class TypeHelpers
 
 
     /// <summary>
-    /// 返回 t 是否为 BBuffer
+    /// 返回 t 是否为 Data
     /// </summary>
-    public static bool _IsBBuffer(this Type t)
+    public static bool _IsData(this Type t)
     {
-        return t.Namespace == nameof(TemplateLibrary) && t.Name == "BBuffer";
+        return t.IsArray && t.Name == "Byte[]";
     }
 
 
     /// <summary>
-    /// 返回 t 是否为容器( string, bbuffer, list )
+    /// 返回 t 是否为容器( string, data, list )
     /// </summary>
     public static bool _IsContainer(this Type t)
     {
-        return t._IsString() || t._IsList() || t._IsBBuffer();
+        return t._IsString() || t._IsList() || t._IsData();
     }
 
     /// <summary>
@@ -252,7 +252,7 @@ public static class TypeHelpers
     /// </summary>
     public static bool _IsSqlNullable(this Type t)
     {
-        return t.IsValueType && t._IsNullable() || t._IsString() || t._IsBBuffer();
+        return t.IsValueType && t._IsNullable() || t._IsString() || t._IsData();
     }
 
 
@@ -456,7 +456,7 @@ public static class TypeHelpers
         {
             return v == null ? "" : v.ToString();
         }
-        if (t.IsGenericType || t.Name == "Byte[]")
+        if (t.IsGenericType || t._IsData())
         {
             return "";
         }
@@ -580,9 +580,9 @@ public static class TypeHelpers
                 {
                     return "DateTime";
                 }
-                else if (t.Name == "BBuffer")
+                else if (t.Name == "Data")
                 {
-                    return "BBuffer";
+                    return "Data";
                 }
             }
             else if (t.Namespace == nameof(System))
@@ -683,9 +683,9 @@ public static class TypeHelpers
                 {
                     return "DateTime";
                 }
-                else if (t.Name == "BBuffer")
+                else if (t.Name == "Data")
                 {
-                    return "xx.BBuffer";
+                    return "xx.Data";
                 }
             }
             else if (t.Namespace == nameof(System))
@@ -746,13 +746,9 @@ public static class TypeHelpers
         {
             return "std::optional<" + t.GenericTypeArguments[0]._GetTypeDecl_Cpp(templateName) + ">";
         }
-        if (t.IsArray)  // 当前特指 byte[]
+        if (t._IsData())
         {
-            if (t.Name != "Byte[]") throw new NotSupportedException();
-            else
-            {
-                return "xx::BBuffer";
-            }
+            return "xx::Data";
         }
         else if (t._IsTuple())
         {
@@ -789,8 +785,8 @@ public static class TypeHelpers
                             var ct = t.GenericTypeArguments[0];
                             return "std::vector" + @"<" + ct._GetTypeDecl_Cpp(templateName) + ">";
                         }
-                    case "BBuffer":
-                        return "xx::BBuffer";
+                    case "Data":
+                        return "xx::Data";
                     default:
                         throw new NotImplementedException();
                 }
@@ -1097,7 +1093,7 @@ public static class TypeHelpers
             {
                 case "DateTime":
                     return "r.GetDateTime";
-                //case "BBuffer":
+                //case "Data":
                 //    return "r.GetXXXXXXXXXXXXX";
 
                 default:
@@ -1153,7 +1149,7 @@ public static class TypeHelpers
         {
             return "(" + t.FullName + ")r.Get" + t.GetEnumUnderlyingType().Name;
         }
-        //else if (t.Namespace == nameof(TemplateLibrary) && t.Name == "BBuffer")
+        //else if (t.Namespace == nameof(TemplateLibrary) && t.Name == "Data")
         //{
         //    return "r.GetBBuffer";
         //}
@@ -1175,8 +1171,8 @@ public static class TypeHelpers
             {
                 //case "DateTime":
                 //    return "sr.GetDateTime";
-                case "BBuffer":
-                    return "this->mempool->MPCreate<xx::BBuffer>(sr.ReadBlob(" + colIdx + "))";
+                case "Data":
+                    return "this->mempool->MPCreate<xx::Data>(sr.ReadBlob(" + colIdx + "))";
 
                 default:
                     throw new Exception("unhandled data type");
@@ -1231,7 +1227,7 @@ public static class TypeHelpers
         {
             return "(" + t.FullName + ")" + _GetDataReaderFuncName_Cpp(t.GetEnumUnderlyingType(), colIdx);
         }
-        //else if (t.Namespace == nameof(TemplateLibrary) && t.Name == "BBuffer")
+        //else if (t.Namespace == nameof(TemplateLibrary) && t.Name == "Data")
         //{
         //    return "sr.GetBBuffer";
         //}
@@ -1266,6 +1262,23 @@ public static class TypeHelpers
         }
         return 0;
     }
+
+    /// <summary>
+    /// 获取 Attribute 之 Limit 值的集合. 未找到将返回 0 长度集合
+    /// </summary>
+    public static List<int> _GetLimits(this ICustomAttributeProvider t)
+    {
+        var rtv = new List<int>();
+        foreach (var r_attribute in t.GetCustomAttributes(false))
+        {
+            if (r_attribute is TemplateLibrary.Limit)
+            {
+                rtv.Add(((TemplateLibrary.Limit)r_attribute).value);
+            }
+        }
+        return rtv;
+    }
+
 
 
     /// <summary>

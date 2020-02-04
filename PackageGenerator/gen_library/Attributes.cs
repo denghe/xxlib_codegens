@@ -12,11 +12,6 @@ namespace TemplateLibrary
     public class List<T> { }
 
     /// <summary>
-    /// 对应 cpp xx::BBuffer,  c# xx.BBuffer, lua user data
-    /// </summary>
-    public class BBuffer { }
-
-    /// <summary>
     /// 标记一个类不继承自 xx::Object ( cpp only )
     /// </summary>
     [System.AttributeUsage(System.AttributeTargets.Class)]
@@ -130,7 +125,7 @@ namespace TemplateLibrary
     }
 
     /// <summary>
-    /// 针对最外层级的 List, BBuffer, string 做最大长度保护限制
+    /// 针对最外层级的 List, Data, string 做最大长度保护限制
     /// 如果是类似 List List... 多层需要限制的情况, 就写多个 Limit, 有几层写几个
     /// </summary>
     [System.AttributeUsage(System.AttributeTargets.Field | System.AttributeTargets.ReturnValue, AllowMultiple = true)]
@@ -160,7 +155,7 @@ namespace TemplateLibrary
     [System.AttributeUsage(System.AttributeTargets.Field)]
     public class Custom : System.Attribute
     {
-        // 传入 读 和 写 的成员函数名. 函数带1个参数: BBuffer. 其实现为自定义读写
+        // 传入 读 和 写 的成员函数名. 函数带1个参数: Serializer/Deserializer. 其实现为自定义读写
         public Custom(string rf, string wf) { this.rf = rf; this.wf = wf; }
         public string rf, wf;
         public override string ToString()
@@ -264,7 +259,7 @@ namespace TemplateLibrary
     }
 
     /// <summary>
-    /// 标记一个类成员在数据库中不可空( 主要是指 String, BBuffer 这种指针类型 )
+    /// 标记一个类成员在数据库中不可空( 主要是指 String, Data 这种指针类型 )
     /// </summary>
     [System.AttributeUsage(System.AttributeTargets.Field)]
     public class NotNull : System.Attribute

@@ -37,12 +37,12 @@ public static class GenLUA_Class
 }");
         }
 
-        // 遍历所有 type 及成员数据类型 生成  typeId. 0 不能占. string 占掉 1. BBuffer 占掉 2.
+        // 遍历所有 type 及成员数据类型 生成  typeId
 
         var typeIds = new TemplateLibrary.TypeIds(asm);
         foreach (var kv in typeIds.types)
         {
-            if (kv.Key == typeof(string) || kv.Key == typeof(TemplateLibrary.BBuffer)) continue;
+            //if (kv.Key._IsString() || kv.Key._IsBBuffer()) continue;
             var c = kv.Key;
             if (!filter.Contains(c)) continue;
             var typeId = (ushort)kv.Value;
@@ -131,7 +131,7 @@ public static class GenLUA_Class
                 else
                 {
                     ftn = ft.IsEnum ? ft.GetEnumUnderlyingType().Name : ft._IsNumeric() ? ft.Name : "Object";
-                    if (ft._IsBBuffer() || ft._IsString()) ftn = "Object";
+                    if (ft._IsData() || ft._IsString()) ftn = "Object";
                 }
                 if (ftns.ContainsKey(ftn)) ftns[ftn]++;
                 else ftns.Add(ftn, 1);
@@ -159,7 +159,7 @@ public static class GenLUA_Class
                 else
                 {
                     ftn = ft.IsEnum ? ft.GetEnumUnderlyingType().Name : ft._IsNumeric() ? ft.Name : "Object";
-                    if (ft._IsBBuffer() || ft._IsString()) ftn = "Object";
+                    if (ft._IsData() || ft._IsString()) ftn = "Object";
                 }
                 if (ftns[ftn] > 1)
                 {
@@ -181,7 +181,7 @@ public static class GenLUA_Class
                 {
                     throw new Exception("LUA does not support weak_ptr or struct");
                 }
-                if (!ct._IsUserClass() && !ct._IsBBuffer() && !ct._IsString())
+                if (!ct._IsUserClass() && !ct._IsData() && !ct._IsString())
                 {
                     if (ct.IsEnum)
                     {
@@ -209,13 +209,13 @@ public static class GenLUA_Class
             }
             sb.Append(@"
     end,
-    ToBBuffer = function( bb, o )");
+    Serialize = function( bb, o )");
             if (c._HasBaseType())
             {
                 var bt = c.BaseType._GetTypeDecl_Lua(templateName);
                 sb.Append(@"
         local p = getmetatable( o )
-        p.__proto.ToBBuffer( bb, p )");
+        p.__proto.Serialize( bb, p )");
             }
             foreach (var kvp in ftns)
             {
@@ -240,7 +240,7 @@ public static class GenLUA_Class
                 else
                 {
                     ftn = ft.IsEnum ? ft.GetEnumUnderlyingType().Name : ft._IsNumeric() ? ft.Name : "Object";
-                    if (ft._IsBBuffer() || ft._IsString()) ftn = "Object";
+                    if (ft._IsData() || ft._IsString()) ftn = "Object";
                 }
                 if (ftns[ftn] > 1)
                 {
@@ -257,7 +257,7 @@ public static class GenLUA_Class
             {
                 var fn = "WriteObject";
                 var ct = c.GenericTypeArguments[0];
-                if (!ct._IsUserClass() && !ct._IsBBuffer() && !ct._IsString())
+                if (!ct._IsUserClass() && !ct._IsData() && !ct._IsString())
                 {
                     if (ct.IsEnum)
                     {

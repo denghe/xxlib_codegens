@@ -82,7 +82,7 @@ namespace xx
 	// 适配 Pos 之 序列化 & 反序列化
 	template<>
 	struct BFuncs<Pos, void> {
-		static inline void Write(Serializer& bb, Pos const& in) {
+		static inline void Serialize(Serializer& bb, Pos const& in) {
 			bb.Reserve(bb.len + sizeof(Pos));
 			memcpy(bb.buf + bb.len, &in, sizeof(Pos));
 			bb.len += sizeof(Pos);

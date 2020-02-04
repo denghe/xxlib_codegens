@@ -77,7 +77,7 @@ namespace xx {
 
 	template<>
 	struct BFuncs<Guid, void> {
-		static inline void Write(Serializer& bb, Guid const& in) noexcept {
+		static inline void Serialize(Serializer& bb, Guid const& in) noexcept {
 			bb.AddRange((uint8_t*)&in, sizeof(Guid));
 		}
 		static inline int Read(Serializer& bb, Guid& out) noexcept {

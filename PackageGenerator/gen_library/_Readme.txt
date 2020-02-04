@@ -27,7 +27,7 @@ bool                                     //
 
 string                                   // 文本容器( 编码后形态为 utf8 ). C++: 对应 std::string. C# & Lua: 对应 string, 逻辑不可空
 
-BBuffer, byte[]                          // 二进制容器. C++: 对应 std::vector<T>. C#: 对应 System.Collections.Generic.List<T>, 逻辑不可空. Lua: 对应 table, 逻辑不可空
+byte[]                                   // 二进制容器. C++: 对应 xx::Data. C#: 对应 xx.BBuffer, 逻辑不可空. Lua: 对应 user data, 逻辑不可空
 
 Nullable<T>, ?                           // 可空标志. 值类型. 可套在上面这些类型上, 以及 class & struct. ?写法主要针对 数值类型. C++: 对应 std::optional<>. C#: string, class 本来就可空. 其他对应 Nullable<>. Lua: 忽略( 本来就可空 )
 

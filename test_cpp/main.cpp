@@ -1,35 +1,44 @@
 #include "xx_serializer.h"
 #include "xx_epoll.h"
+#include "PKG_class.h"
 int main() {
 	{
 		xx::Serializer s;
 		s.Write(1, 2, 3, 4, 5);
 		auto&& d = s.GetData();
+		s.Write(d, "abc123");
+		d = s.GetData();
+
 		xx::Deserializer ds;
 		ds.SetData(d);
 		int i1, i2, i3, i4, i5;
-		auto r = ds.Read(i1, i2, i3, i4, i5);
+		std::string str;
+		auto r = ds.Read(d, str);
+		xx::CoutSN(r, d, str);
+		ds.SetData(d);
+		r = ds.Read(i1, i2, i3, i4, i5);
 		xx::CoutSN(r, i1, i2, i3, i4, i5);
 	}
-	//{
-	//	xx::Data d;
-	//	d.WriteBuf("asdf", 4);
-	//	xx::Data d2;
-	//	d2 = std::move(d);
-	//	xx::Data d3(d2);
-	//	d3.SetReadonlyMode();
-	//	std::cout << d3.Refs() << std::endl;
-	//	{
-	//		auto d4 = d3;
-	//		std::cout << d3.Refs() << std::endl;
-	//		auto d5 = d4;
-	//		std::cout << d3.Refs() << std::endl;
-	//	}
-	//	std::cout << d3.Refs() << std::endl;
-	//}
+	std::cin.get();
 	return 0;
 }
 
+//{
+//	xx::Data d;
+//	d.WriteBuf("asdf", 4);
+//	xx::Data d2;
+//	d2 = std::move(d);
+//	xx::Data d3(d2);
+//	d3.SetReadonlyMode();
+//	std::cout << d3.Refs() << std::endl;
+//	{
+//		auto d4 = d3;
+//		std::cout << d3.Refs() << std::endl;
+//		auto d5 = d4;
+//		std::cout << d3.Refs() << std::endl;
+//	}
+//	std::cout << d3.Refs() << std::endl;
+//}
 
 //#include "PKG_class.h"
 //
@@ -76,6 +85,53 @@ int main() {
 //	////bb.Write(b);
 //	//xx::CoutN(bb);
 //
+//	std::cin.get();
+//	return 0;
+//}
+
+
+
+
+
+
+
+
+
+//#include <iostream>
+//#include "ajson.hpp"
+//#define List vector
+//using namespace std;
+//
+//struct Foo {
+//	int i = 0;
+//	List<string> ss;
+//};
+//AJSON(Foo, i, ss);
+//
+//struct Foos {
+//	List<Foo> foos;
+//};
+//AJSON(Foos, foos);
+//
+//int main() {
+//	Foos c;
+//	ajson::load_from_buff(c, R"({
+//	"foos":[
+//	{
+//		"i":123,
+//		"ss":["asdf", "qwer"]
+//	},
+//	{
+//		"i":345,
+//		"ss":["zzzz", "xxxxxx"]
+//	}]
+//})");
+//	for (auto&& foo : c.foos) {
+//		std::cout << foo.i << std::endl;
+//		for (auto&& s : foo.ss) {
+//			std::cout << s << std::endl;
+//		}
+//	}
 //	std::cin.get();
 //	return 0;
 //}

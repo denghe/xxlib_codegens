@@ -23,7 +23,7 @@ namespace NS1
         [Limit(16)]
         string _string;
         [Limit(32)]
-        byte[] _bbuffer;
+        byte[] _data;
     }
 }
 
@@ -33,7 +33,7 @@ class A : NS1.A
 {
     int? nullable_int;
     Nullable<string> nullable_string;
-    Nullable<byte[]> nullable_bbuffer;
+    Nullable<byte[]> nullable_data;
 }
 
 namespace NS3.NS4
@@ -44,7 +44,7 @@ namespace NS3.NS4
     {
         List<int?> list_nullable_int;
         List<Nullable<string>> list_nullable_string;
-        List<Nullable<byte[]>> list_nullable_bbuffer;
+        List<Nullable<byte[]>> list_nullable_data;
     }
 }
 
@@ -52,9 +52,9 @@ namespace NS3.NS4
 [Struct]
 class B : NS3.NS4.A
 {
-    Nullable<List<int?>> _int;
-    Nullable<List<Nullable<string>>> _string;
-    Nullable<List<Nullable<byte[]>>> _bbuffer;
+    Nullable<List<int?>> nullable_list_nullable_int;
+    Nullable<List<Nullable<string>>> nullable_list_nullable_string;
+    Nullable<List<Nullable<byte[]>>> nullable_list_nullable_data;
 }
 
 [Desc("包含结构体 B 用于收发. 测试多层 List + Limit")]

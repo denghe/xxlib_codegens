@@ -190,7 +190,7 @@ namespace xx {
 
 	template<>
 	struct BFuncs<Random, void> {
-		static inline void Write(Serializer& bb, Random const& in) noexcept {
+		static inline void Serialize(Serializer& bb, Random const& in) noexcept {
 			bb.AddRange((uint8_t*)&in, sizeof(Random));
 		}
 		static inline int Read(Serializer& bb, Random& out) noexcept {

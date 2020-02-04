@@ -11,8 +11,8 @@ namespace xx {
 
 		// 序列化相关
 		inline virtual uint16_t GetTypeId() const noexcept { return 0; }
-		inline virtual void ToBBuffer(Serializer& bb) const noexcept { (void)bb; }
-		inline virtual int FromBBuffer(Deserializer& bb) noexcept { (void)bb; return 0; }
+		inline virtual void Serialize(Serializer& bb) const noexcept { (void)bb; }
+		inline virtual int Deserialize(Deserializer& bb) noexcept { (void)bb; return 0; }
 
 		// 字串输出相关
 		inline virtual void ToString(std::string& s) const noexcept { (void)s; };
@@ -23,7 +23,8 @@ namespace xx {
 		}
 
 		// 级联相关( 主用于遍历调用生成物派生类 override 的代码 )
-		inline virtual int InitCascade(void* const& o = nullptr) noexcept { (void)o; return 0; };
+		inline virtual int Cascade(void* const& o = nullptr) noexcept { return CascadeCore(o); };
+		inline virtual int CascadeCore(void* const& o = nullptr) noexcept { (void)o; return 0; };
 	};
 
 	using Object_s = std::shared_ptr<Object>;
