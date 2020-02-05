@@ -114,7 +114,9 @@ public static class StringHelpers
         txt = txt.Replace(StringHelpers.MD5PlaceHolder, StringHelpers.MD5PlaceHolder_Left + md5 + StringHelpers.MD5PlaceHolder_Right);
         if (oldTxt == txt)
         {
+            Console.ForegroundColor = ConsoleColor.DarkGreen;
             Console.WriteLine("已跳过 " + fn);
+            Console.ResetColor();
             return false;
         }
 
@@ -128,7 +130,9 @@ public static class StringHelpers
             var buf = Encoding.UTF8.GetBytes(txt);
             fs.Write(buf, 0, buf.Length);
             fs.Close();
+            Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine("已生成 " + fn);
+            Console.ResetColor();
             return true;
         }
     }

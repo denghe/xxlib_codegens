@@ -147,6 +147,9 @@ namespace xx {
 
 		// 与目标 Data 交焕数据. 同时, offset 也会被清 0. 通常用于收到 Data 后想反序列化.
 		inline void SetData(Data& o) {
+			SetData(std::move(o));
+		}
+		inline void SetData(Data&& o) {
 			assert(!Readonly());
 			assert(!o.Readonly());
 			this->Data::operator=(std::move(o));
@@ -237,7 +240,7 @@ namespace xx {
 		}
 
 		// 读 vector<vector<vector<... 同时检查长度限制
-		template<size_t limit, size_t ...limits, typename T>//, typename ENABLED = std::enable_if_t<xx::IsVector_v<T> && xx::DeepLevel_v<T> == sizeof...(limits)>>
+		template<size_t limit, size_t ...limits, typename T, typename ENABLED = std::enable_if_t<xx::IsVector_v<T> && xx::DeepLevel_v<T> == sizeof...(limits) + 1>>
 		int ReadLimit(T& out) {
 			size_t siz = 0;
 			if (auto rtv = Read(siz)) return rtv;
@@ -339,7 +342,7 @@ namespace xx {
 	/**********************************************************************************************************************/
 	// 适配 BFuncs
 
-	// 适配 xx::Data
+	// 适配 Data
 	template<>
 	struct BFuncs<Data, void> {
 		static inline void Serialize(Serializer& bb, Data const& in) {
@@ -349,6 +352,47 @@ namespace xx {
 		}
 		static inline int Deserialize(Deserializer& bb, Data& out) {
 			return bb.ReadLimit<0>(out);
+		}
+	};
+
+	// 适配 Object
+	template<typename T>
+	struct BFuncs<T, std::enable_if_t<std::is_base_of_v<Object, T>>> {
+		static inline void Serialize(Serializer& bb, T const& in) {
+			in.Serialize(bb);
+		}
+		static inline int Deserialize(Deserializer& bb, T& out) {
+			return out.Deserialize(bb);
+		}
+	};
+
+	// 适配 std::shared_ptr<T : Object>
+	template<typename T>
+	struct BFuncs<std::shared_ptr<T>, std::enable_if_t<std::is_base_of_v<Object, T>>> {
+		static inline void Serialize(Serializer& bb, std::shared_ptr<T> const& in) {
+			bb.WritePtr(in);
+		}
+		static inline int Deserialize(Deserializer& bb, std::shared_ptr<T>& out) {
+			return bb.ReadPtr(out);
+		}
+	};
+
+	// 适配 std::weak_ptr<T : Object>
+	template<typename T>
+	struct BFuncs<std::weak_ptr<T>, std::enable_if_t<std::is_base_of_v<Object, T>>> {
+		static inline void Serialize(Serializer& bb, std::weak_ptr<T> const& in) {
+			if (auto ptr = in.lock()) {
+				bb.WritePtr(ptr);
+			}
+			else {
+				bb.Write((uint16_t)0);
+			}
+		}
+		static inline int Deserialize(Deserializer& bb, std::weak_ptr<T>& out) {
+			std::shared_ptr<T> ptr;
+			if (int r = bb.ReadPtr(ptr)) return r;
+			out = ptr;
+			return 0;
 		}
 	};
 
@@ -534,33 +578,5 @@ namespace xx {
 		}
 	};
 
-	// 适配 std::shared_ptr<T : Object>
-	template<typename T>
-	struct BFuncs<std::shared_ptr<T>, std::enable_if_t<std::is_base_of_v<Object, T> || std::is_same_v<std::string, T>>> {
-		static inline void Serialize(Serializer& bb, std::shared_ptr<T> const& in) {
-			bb.WritePtr(in);
-		}
-		static inline int Deserialize(Deserializer& bb, std::shared_ptr<T>& out) {
-			return bb.ReadPtr(out);
-		}
-	};
 
-	// 适配 std::weak_ptr<T : Object>
-	template<typename T>
-	struct BFuncs<std::weak_ptr<T>, std::enable_if_t<std::is_base_of_v<Object, T> || std::is_same_v<std::string, T>>> {
-		static inline void Serialize(Serializer& bb, std::weak_ptr<T> const& in) {
-			if (auto ptr = in.lock()) {
-				bb.WritePtr(ptr);
-			}
-			else {
-				bb.Write((uint16_t)0);
-			}
-		}
-		static inline int Deserialize(Deserializer& bb, std::weak_ptr<T>& out) {
-			std::shared_ptr<T> ptr;
-			if (int r = bb.ReadPtr(ptr)) return r;
-			out = ptr;
-			return 0;
-		}
-	};
 }

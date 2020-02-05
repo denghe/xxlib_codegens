@@ -4,21 +4,54 @@
 int main() {
 	{
 		xx::Serializer s;
-		s.Write(1, 2, 3, 4, 5);
-		auto&& d = s.GetData();
-		s.Write(d, "abc123");
-		d = s.GetData();
-
+		std::shared_ptr<PKG::Foo> f;
+		xx::MakeTo(f);
+		auto&& c0 = f->bs.emplace_back();
+		auto&& c0c0 = c0.emplace_back();
+		auto&& b = c0c0.emplace();
+		b._int = 123;
+		b.nullable_data.emplace("asdf", 4);
+		xx::CoutSN(f);
+		s.WriteRoot(f);
 		xx::Deserializer ds;
-		ds.SetData(d);
-		int i1, i2, i3, i4, i5;
-		std::string str;
-		auto r = ds.Read(d, str);
-		xx::CoutSN(r, d, str);
-		ds.SetData(d);
-		r = ds.Read(i1, i2, i3, i4, i5);
-		xx::CoutSN(r, i1, i2, i3, i4, i5);
+		ds.SetData(s.GetData());
+		int r = ds.ReadRoot(f);
+		xx::CoutSN(f, r);
 	}
+
+	{
+		xx::Serializer s;
+		PKG::Foo f;
+		auto&& c0 = f.bs.emplace_back();
+		auto&& c0c0 = c0.emplace_back();
+		auto&& b = c0c0.emplace();
+		b._int = 123;
+		b.nullable_data.emplace("asdf", 4);
+		xx::CoutSN(f);
+		s.WriteRoot(f);
+		xx::Deserializer ds;
+		ds.SetData(s.GetData());
+		int r = ds.ReadRoot(f);
+		xx::CoutSN(f, r);
+	}
+
+	//{
+	//	xx::Serializer s;
+	//	s.Write(1, 2, 3, 4, 5);
+	//	auto&& d = s.GetData();
+	//	s.Write(d, "abc123");
+	//	d = s.GetData();
+	//	xx::Deserializer ds;
+	//	ds.SetData(d);
+	//	int i1, i2, i3, i4, i5;
+	//	std::string str;
+	//	auto r = ds.Read(d, str);
+	//	xx::CoutSN(r, d, str);
+	//	ds.SetData(d);
+	//	r = ds.Read(i1, i2, i3, i4, i5);
+	//	xx::CoutSN(r, i1, i2, i3, i4, i5);
+	//}
+
 	std::cin.get();
 	return 0;
 }

@@ -78,7 +78,9 @@ namespace xx {
 	template<typename T>
 	struct SFuncs<T, std::enable_if_t<std::is_base_of_v<std::string, T>>> {
 		static inline void Append(std::string& s, T const& in) noexcept {
+			s.append("\"");
 			s.append(in);
+			s.append("\"");
 		}
 	};
 

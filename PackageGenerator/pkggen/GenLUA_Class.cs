@@ -80,7 +80,7 @@ public static class GenLUA_Class
                     var v = f.GetValue(f.IsStatic ? null : o);
                     var dv = v._GetDefaultValueDecl_Lua(templateName);
                     sb.Append(f._GetDesc()._GetComment_Lua(8));
-                    if (ft._IsWeak() || ft._IsStruct())
+                    if (ft._IsWeak() || ft._IsUserStruct())
                     {
                         throw new Exception("LUA does not support weak_ptr or struct");
                     }
@@ -120,7 +120,7 @@ public static class GenLUA_Class
             {
                 var ft = f.FieldType;
                 var ftn = "";
-                if (ft._IsWeak() || ft._IsStruct())
+                if (ft._IsWeak() || ft._IsUserStruct())
                 {
                     throw new Exception("LUA does not support weak_ptr or struct");
                 }
@@ -148,7 +148,7 @@ public static class GenLUA_Class
             {
                 var ft = f.FieldType;
                 var ftn = "";
-                if (ft._IsWeak() || ft._IsStruct())
+                if (ft._IsWeak() || ft._IsUserStruct())
                 {
                     throw new Exception("LUA does not support weak_ptr or struct");
                 }
@@ -177,7 +177,7 @@ public static class GenLUA_Class
             {
                 var fn = "ReadObject";
                 var ct = c.GenericTypeArguments[0];
-                if (ct._IsWeak() || ct._IsStruct())
+                if (ct._IsWeak() || ct._IsUserStruct())
                 {
                     throw new Exception("LUA does not support weak_ptr or struct");
                 }
@@ -229,7 +229,7 @@ public static class GenLUA_Class
             {
                 var ft = f.FieldType;
                 var ftn = "";
-                if (ft._IsWeak() || ft._IsStruct())
+                if (ft._IsWeak() || ft._IsUserStruct())
                 {
                     throw new Exception("LUA does not support weak_ptr or struct");
                 }

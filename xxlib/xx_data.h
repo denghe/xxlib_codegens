@@ -32,6 +32,9 @@ namespace xx {
 			WriteBuf(ptr, siz);
 		}
 
+		// 通过 初始化列表 来构造
+		Data(std::initializer_list<char> bytes)	: Data( bytes.begin(), bytes.size() ){}
+
 		// 复制构造
 		Data(Data const& o) {
 			operator=(o);

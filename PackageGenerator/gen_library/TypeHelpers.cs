@@ -39,7 +39,7 @@ public static class TypeHelpers
     /// </summary>
     public static List<Type> _GetStructs(this List<Type> ts, bool exceptExternal = true)
     {
-        return ts.Where(t => t._IsStruct()).ToList();
+        return ts.Where(t => t._IsUserStruct()).ToList();
     }
 
     /// <summary>
@@ -55,7 +55,7 @@ public static class TypeHelpers
     /// </summary>
     public static List<Type> _GetClasssStructs(this List<Type> ts, bool exceptExternal = true)
     {
-        return ts.Where(t => (t._IsUserClass() || t._IsStruct())).ToList();
+        return ts.Where(t => (t._IsUserClass() || t._IsUserStruct())).ToList();
     }
 
 
@@ -308,7 +308,7 @@ public static class TypeHelpers
     /// <summary>
     /// 返回 t 是否为 struct
     /// </summary>
-    public static bool _IsStruct(this Type t)
+    public static bool _IsUserStruct(this Type t)
     {
         return (t.IsClass && t._Has<TemplateLibrary.Struct>())
             || (t.IsValueType && !t.IsEnum && !t._IsNullable() && !t._IsNumeric() && !t._IsExternal());

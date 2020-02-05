@@ -38,7 +38,7 @@ namespace xx {
 
 	// 适配 std::shared_ptr<T : Object>
 	template<typename T>
-	struct SFuncs<std::shared_ptr<T>, std::enable_if_t<std::is_base_of_v<Object, T> || std::is_same_v<std::string, T>>> {
+	struct SFuncs<std::shared_ptr<T>, std::enable_if_t<std::is_base_of_v<Object, T>>> {
 		static inline void Append(std::string& s, std::shared_ptr<T> const& in) noexcept {
 			if (in) {
 				SFuncs<T>::Append(s, *in);
@@ -51,7 +51,7 @@ namespace xx {
 
 	// 适配 std::weak_ptr<T : Object>
 	template<typename T>
-	struct SFuncs<std::weak_ptr<T>, std::enable_if_t<std::is_base_of_v<Object, T> || std::is_same_v<std::string, T>>> {
+	struct SFuncs<std::weak_ptr<T>, std::enable_if_t<std::is_base_of_v<Object, T>>> {
 		static inline void Append(std::string& s, std::weak_ptr<T> const& in) noexcept {
 			if (auto o = in.lock()) {
 				SFuncs<T>::Append(s, *o);

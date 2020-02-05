@@ -217,7 +217,7 @@ namespace " + iface.Namespace + @" {");
                     var ct = rt.GenericTypeArguments[0];
 
                     // 用户类 或 用户结构体
-                    if (ct._IsUserClass() || ct._IsStruct())
+                    if (ct._IsUserClass() || ct._IsUserStruct())
                     {
                         sb.Append(@"
 			this->query_" + fn + @"->Execute([&](xx::SQLiteReader& sr)
@@ -263,7 +263,7 @@ namespace " + iface.Namespace + @" {");
             this->query_" + fn + @"->Execute();");
                     }
                     // 用户类 或 用户结构体
-                    else if (rt._IsUserClass() || rt._IsStruct())
+                    else if (rt._IsUserClass() || rt._IsUserStruct())
                     {
                         var rtfs = rt._GetFields();
                         if (rtfs.Count() == 0)

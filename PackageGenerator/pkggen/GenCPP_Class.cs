@@ -60,13 +60,13 @@ namespace " + c.Namespace.Replace(".", "::") + @" {");
 
             sb.Append(c._GetDesc()._GetComment_Cpp(4) + @"
     " + (c.IsValueType ? "struct" : "struct") + @" " + c.Name + @";");
-            if (c._IsUserClass())
-            {
-                sb.Append(@"
-    using " + c.Name + @"_s = std::shared_ptr<" + c.Name + @">;
-    using " + c.Name + @"_w = std::weak_ptr<" + c.Name + @">;
-");
-            }
+//            if (c._IsUserClass())
+//            {
+//                sb.Append(@"
+//    using " + c.Name + @"_s = std::shared_ptr<" + c.Name + @">;
+//    using " + c.Name + @"_w = std::weak_ptr<" + c.Name + @">;
+//");
+//            }
 
             if (c.Namespace != null && ((i < cs.Count - 1 && cs[i + 1].Namespace != c.Namespace) || i == cs.Count - 1))
             {
@@ -404,7 +404,7 @@ namespace xx {");
         }
         else this->SetToStringFlag();
 
-        xx::Append(s, ""{ \""structTypeName\"":\""" + (string.IsNullOrEmpty(c.Namespace) ? c.Name : c.Namespace + "." + c.Name) + @"\"", \""structTypeId\"":"", GetTypeId());
+        xx::Append(s, ""{ \""structTypeName\"":\""" + templateName + "." + (string.IsNullOrEmpty(c.Namespace) ? c.Name : c.Namespace + "." + c.Name) + @"\"", \""structTypeId\"":"", GetTypeId());
         ToStringCore(s);
         xx::Append(s, "" }"");");
         }
@@ -412,7 +412,7 @@ namespace xx {");
         {
             sb.Append(@"
 	void SFuncs<" + ctn + @", void>::Append(std::string& s, " + ctn + @" const& in) noexcept {
-        xx::Append(s, ""{ \""structTypeName\"":\""" + (string.IsNullOrEmpty(c.Namespace) ? c.Name : c.Namespace + "." + c.Name) + @"\"""");
+        xx::Append(s, ""{ \""structTypeName\"":\""" + templateName + "." + (string.IsNullOrEmpty(c.Namespace) ? c.Name : c.Namespace + "." + c.Name) + @"\"""");
         AppendCore(s, in);
         xx::Append(s, "" }"");");
         }
@@ -456,9 +456,10 @@ namespace xx {");
         var fs = c._GetFields();
         foreach (var f in fs)
         {
-            if (f.FieldType._IsExternal() && !f.FieldType._GetExternalSerializable()) continue;
+            var ft = f.FieldType;
+            if (ft._IsExternal() && !ft._GetExternalSerializable()) continue;
             sb.Append(@"
-        xx::Append(s, ""\""" + f.Name + @"\"" : \"""", " + cn + f.Name + @", ""\"""");");
+        xx::Append(s, "", \""" + f.Name + @"\"" : "", " + cn + f.Name + @");");
         }
         sb.Append(@"
     }");

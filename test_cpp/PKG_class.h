@@ -4,7 +4,7 @@
 
 namespace PKG {
 	struct PkgGenMd5 {
-		inline static const std::string value = "#*MD5<94076235c63b9103fe5210391d41ce64>*#";
+		inline static const std::string value = "#*MD5<f9321e05a774d2909ebaa54d2cc3f264>*#";
     };
 	struct AllTypesRegister {
         AllTypesRegister();
@@ -25,19 +25,10 @@ namespace NS3::NS4 {
     struct B;
     // 包含结构体 B 用于收发. 测试多层 List + Limit
     struct Foo;
-    using Foo_s = std::shared_ptr<Foo>;
-    using Foo_w = std::weak_ptr<Foo>;
-
     // 测试 Weak 递归引用
     struct Node;
-    using Node_s = std::shared_ptr<Node>;
-    using Node_w = std::weak_ptr<Node>;
-
     // 测试 Unique, Shared
     struct NodeContainer;
-    using NodeContainer_s = std::shared_ptr<NodeContainer>;
-    using NodeContainer_w = std::weak_ptr<NodeContainer>;
-
 namespace NS1 {
     // 测试传统值类型
     struct A {
@@ -72,7 +63,7 @@ namespace NS3::NS4 {
 }
     // 测试可空可空值类型数组
     struct B : PKG::NS3::NS4::A {
-        std::optional<std::vector<std::optional<int32_t>>> _int;
+        std::optional<std::vector<std::optional<int32_t>>> nullable_list_nullable_int;
         std::optional<std::vector<std::optional<std::string>>> nullable_list_nullable_string;
         std::optional<std::vector<std::optional<xx::Data>>> nullable_list_nullable_data;
     };
