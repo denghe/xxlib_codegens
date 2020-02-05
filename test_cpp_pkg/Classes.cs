@@ -70,11 +70,10 @@ class Node
     Weak<Node> parent;
 }
 
-[Desc("测试 Unique, Shared")]
+[Desc("测试 Shared")]
 class NodeContainer
 {
     Shared<Node> node;
-    Unique<Foo> foo;
 }
 
 // todo: 测试 External Include Custom

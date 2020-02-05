@@ -29,6 +29,7 @@ namespace xx {
 
 	using Object_s = std::shared_ptr<Object>;
 
+	// 适配 T : Object
 	template<typename T>
 	struct SFuncs<T, std::enable_if_t<std::is_base_of_v<Object, T>>> {
 		static inline void Append(std::string& s, T const& in) noexcept {

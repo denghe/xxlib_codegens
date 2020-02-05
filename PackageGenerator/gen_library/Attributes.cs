@@ -27,11 +27,6 @@ namespace TemplateLibrary
     /// </summary>
     public class Shared<T> { }
 
-    /// <summary>
-    /// 标记生成为 std::unique_ptr ( cpp only )
-    /// </summary>
-    public class Unique<T> { }
-
 
 
     /// <summary>

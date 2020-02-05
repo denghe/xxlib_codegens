@@ -4,36 +4,70 @@
 int main() {
 	{
 		xx::Serializer s;
-		std::shared_ptr<PKG::Foo> f;
-		xx::MakeTo(f);
-		auto&& c0 = f->bs.emplace_back();
-		auto&& c0c0 = c0.emplace_back();
-		auto&& b = c0c0.emplace();
-		b._int = 123;
-		b.nullable_data.emplace("asdf", 4);
-		xx::CoutSN(f);
-		s.WriteRoot(f);
+		{
+			PKG::NodeContainer nc;
+			xx::MakeTo(nc.node);
+			nc.node->parent = nc.node;
+			xx::CoutSN(nc);
+			s.WriteRoot(nc);
+		}
 		xx::Deserializer ds;
 		ds.SetData(s.GetData());
-		int r = ds.ReadRoot(f);
-		xx::CoutSN(f, r);
+		{
+			PKG::NodeContainer o;
+			int r = ds.ReadRoot(o);
+			xx::CoutSN(o, r);
+		}
 	}
 
-	{
-		xx::Serializer s;
-		PKG::Foo f;
-		auto&& c0 = f.bs.emplace_back();
-		auto&& c0c0 = c0.emplace_back();
-		auto&& b = c0c0.emplace();
-		b._int = 123;
-		b.nullable_data.emplace("asdf", 4);
-		xx::CoutSN(f);
-		s.WriteRoot(f);
-		xx::Deserializer ds;
-		ds.SetData(s.GetData());
-		int r = ds.ReadRoot(f);
-		xx::CoutSN(f, r);
-	}
+	//{
+	//	xx::Serializer s;
+	//	{
+	//		auto&& n = std::make_shared<PKG::Node>();
+	//		n->parent = n;
+	//		xx::CoutSN(n);
+	//		s.WriteRoot(n);
+	//	}
+	//	xx::Deserializer ds;
+	//	ds.SetData(s.GetData());
+	//	{
+	//		std::shared_ptr<xx::Object> o;
+	//		int r = ds.ReadRoot(o);
+	//		xx::CoutSN(o, r);
+	//	}
+	//}
+
+	//{
+	//	auto&& f = std::make_shared<PKG::Foo>();
+	//	auto&& c0 = f->bs.emplace_back();
+	//	auto&& c0c0 = c0.emplace_back();
+	//	auto&& b = c0c0.emplace();
+	//	b._int = 123;
+	//	b.nullable_data.emplace("asdf", 4);
+	//	xx::CoutSN(f);
+	//	xx::Serializer s;
+	//	s.WriteRoot(f);
+	//	xx::Deserializer ds;
+	//	ds.SetData(s.GetData());
+	//	int r = ds.ReadRoot(f);
+	//	xx::CoutSN(f, r);
+	//}
+
+	//{
+	//	PKG::Foo f;
+	//	auto&& c0 = f.bs.emplace_back();
+	//	auto&& c0c0 = c0.emplace_back();
+	//	auto&& b = c0c0.emplace();
+	//	b._int = 123;
+	//	b.nullable_data.emplace("asdf", 4);
+	//	xx::CoutSN(f);
+	//	xx::Serializer s;
+	//	s.WriteRoot(f);
+	//	xx::Deserializer ds;
+	//	ds.SetData(s.GetData());
+	//	int r = ds.ReadRoot(f);
+	//	xx::CoutSN(f, r);
+	//}
 
 	//{
 	//	xx::Serializer s;

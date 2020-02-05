@@ -4,7 +4,7 @@
 
 namespace PKG {
 	struct PkgGenMd5 {
-		inline static const std::string value = "#*MD5<f9321e05a774d2909ebaa54d2cc3f264>*#";
+		inline static const std::string value = "#*MD5<03d06abf8a7e4656685789354adfdc22>*#";
     };
 	struct AllTypesRegister {
         AllTypesRegister();
@@ -27,7 +27,7 @@ namespace NS3::NS4 {
     struct Foo;
     // 测试 Weak 递归引用
     struct Node;
-    // 测试 Unique, Shared
+    // 测试 Shared
     struct NodeContainer;
 namespace NS1 {
     // 测试传统值类型
@@ -77,10 +77,9 @@ namespace NS3::NS4 {
         std::weak_ptr<PKG::Node> parent;
         XX_CODEGEN_CLASS_HEADER(Node, ::xx::Object)
     };
-    // 测试 Unique, Shared
+    // 测试 Shared
     struct NodeContainer : ::xx::Object {
         std::shared_ptr<PKG::Node> node;
-        std::unique_ptr<PKG::Foo> foo;
         XX_CODEGEN_CLASS_HEADER(NodeContainer, ::xx::Object)
     };
 }

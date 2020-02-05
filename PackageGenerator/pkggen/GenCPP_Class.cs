@@ -59,7 +59,7 @@ namespace " + c.Namespace.Replace(".", "::") + @" {");
             }
 
             sb.Append(c._GetDesc()._GetComment_Cpp(4) + @"
-    " + (c.IsValueType ? "struct" : "struct") + @" " + c.Name + @";");
+    struct " + c.Name + @";");
 //            if (c._IsUserClass())
 //            {
 //                sb.Append(@"
@@ -281,7 +281,7 @@ namespace xx {");
 ");
     }
 
-    static void GenCPP_BBWrites(this StringBuilder sb, string templateName, Type c, bool isThis = true)
+    static void GenCPP_Serialize(this StringBuilder sb, string templateName, Type c, bool isThis = true)
     {
         var cn = isThis ? "this->" : "in.";
         var ctn = c._GetTypeDecl_Cpp(templateName);
@@ -333,7 +333,7 @@ namespace xx {");
     }");
     }
 
-    static void GenCPP_BBReads(this StringBuilder sb, string templateName, Type c, bool isThis = true)
+    static void GenCPP_Deserialize(this StringBuilder sb, string templateName, Type c, bool isThis = true)
     {
         var ctn = c._GetTypeDecl_Cpp(templateName);
         if (isThis)
@@ -459,7 +459,7 @@ namespace xx {");
             var ft = f.FieldType;
             if (ft._IsExternal() && !ft._GetExternalSerializable()) continue;
             sb.Append(@"
-        xx::Append(s, "", \""" + f.Name + @"\"" : "", " + cn + f.Name + @");");
+        xx::Append(s, "", \""" + f.Name + @"\"":"", " + cn + f.Name + @");");
         }
         sb.Append(@"
     }");
@@ -556,8 +556,8 @@ namespace xx {");
         foreach (var c in cs)
         {
             if (filter != null && !filter.Contains(c)) continue;
-            sb.GenCPP_BBWrites(templateName, c, false);
-            sb.GenCPP_BBReads(templateName, c, false);
+            sb.GenCPP_Serialize(templateName, c, false);
+            sb.GenCPP_Deserialize(templateName, c, false);
             sb.GenCPP_StrAppends(templateName, c, false);
             sb.GenCPP_Cascades(templateName, c, false);
         }
@@ -588,8 +588,8 @@ namespace " + c.Namespace.Replace(".", "::") + @" {");
     uint16_t " + c.Name + @"::GetTypeId() const noexcept {
         return " + typeIds.types[c] + @";
     }");
-            sb.GenCPP_BBWrites(templateName, c);
-            sb.GenCPP_BBReads(templateName, c);
+            sb.GenCPP_Serialize(templateName, c);
+            sb.GenCPP_Deserialize(templateName, c);
             sb.GenCPP_StrAppends(templateName, c);
             sb.GenCPP_Cascades(templateName, c);
 

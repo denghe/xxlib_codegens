@@ -33,7 +33,6 @@ Nullable<T>, ?                           // 可空标志. 值类型. 可套在�
 
 Shared<T>                                // C++: 对应 std::shared_ptr<class>. C#, Lua: 忽略( 默认就是这种模式 )
 Weak<T>                                  // C++: 对应 std::weak_ptr<class>. C#, Lua: 忽略( 通常需要在 class 中添加 disposed 等失效判定字段 以避免因生命周期延长导致的问题 )
-Unique<T>                                // C++: 对应 std::unique_ptr<class>. C#, Lua: 忽略( 通常需要模拟 Disposed 机制和失效判定来实现类似效果 以避免因生命周期延长导致的问题 )
 
 object                                   // 可承载任意 class( xx.Object 基类 ), 用于上面 3 种引用类型的 T. 直接写 object 仅针对 C#, Lua 有效.
 
@@ -91,7 +90,7 @@ C++ 生成中关于模板类写作 class, struct 的异同:
     class 可包裹 Shared<> 或 Weak<> 产生引用类型, 在一次关联的发送数据中递归引用
     struct 不可包裹 Shared<> 或 Weak<>
 
-    class & struct 可包裹 Nullable<>, Unique<>, 算可空值类型
+    class & struct 可包裹 Nullable<>, 算可空值类型
 
 C# 生成中关于模板类写作 class, struct 的异同:
     struct 无继承, 不分配 typeId

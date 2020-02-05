@@ -42,19 +42,19 @@ namespace xx {
         xx::Append(s, " }");
     }
 	void SFuncs<PKG::NS1::A, void>::AppendCore(std::string& s, PKG::NS1::A const& in) noexcept {
-        xx::Append(s, ", \"_byte\" : ", in._byte);
-        xx::Append(s, ", \"_sbyte\" : ", in._sbyte);
-        xx::Append(s, ", \"_ushort\" : ", in._ushort);
-        xx::Append(s, ", \"_short\" : ", in._short);
-        xx::Append(s, ", \"_uint\" : ", in._uint);
-        xx::Append(s, ", \"_int\" : ", in._int);
-        xx::Append(s, ", \"_ulong\" : ", in._ulong);
-        xx::Append(s, ", \"_long\" : ", in._long);
-        xx::Append(s, ", \"_float\" : ", in._float);
-        xx::Append(s, ", \"_double\" : ", in._double);
-        xx::Append(s, ", \"_bool\" : ", in._bool);
-        xx::Append(s, ", \"_string\" : ", in._string);
-        xx::Append(s, ", \"_data\" : ", in._data);
+        xx::Append(s, ", \"_byte\":", in._byte);
+        xx::Append(s, ", \"_sbyte\":", in._sbyte);
+        xx::Append(s, ", \"_ushort\":", in._ushort);
+        xx::Append(s, ", \"_short\":", in._short);
+        xx::Append(s, ", \"_uint\":", in._uint);
+        xx::Append(s, ", \"_int\":", in._int);
+        xx::Append(s, ", \"_ulong\":", in._ulong);
+        xx::Append(s, ", \"_long\":", in._long);
+        xx::Append(s, ", \"_float\":", in._float);
+        xx::Append(s, ", \"_double\":", in._double);
+        xx::Append(s, ", \"_bool\":", in._bool);
+        xx::Append(s, ", \"_string\":", in._string);
+        xx::Append(s, ", \"_data\":", in._data);
     }
 #ifndef CUSTOM_INITCASCADE_PKG_NS1_A
 	int CFuncs<PKG::NS1::A, void>::Cascade(void* const& o, PKG::NS1::A const& in) noexcept {
@@ -84,9 +84,9 @@ namespace xx {
     }
 	void SFuncs<PKG::A, void>::AppendCore(std::string& s, PKG::A const& in) noexcept {
         SFuncs<PKG::NS1::A>::AppendCore(s, in);
-        xx::Append(s, ", \"nullable_int\" : ", in.nullable_int);
-        xx::Append(s, ", \"nullable_string\" : ", in.nullable_string);
-        xx::Append(s, ", \"nullable_data\" : ", in.nullable_data);
+        xx::Append(s, ", \"nullable_int\":", in.nullable_int);
+        xx::Append(s, ", \"nullable_string\":", in.nullable_string);
+        xx::Append(s, ", \"nullable_data\":", in.nullable_data);
     }
 #ifndef CUSTOM_INITCASCADE_PKG_A
 	int CFuncs<PKG::A, void>::Cascade(void* const& o, PKG::A const& in) noexcept {
@@ -117,9 +117,9 @@ namespace xx {
     }
 	void SFuncs<PKG::NS3::NS4::A, void>::AppendCore(std::string& s, PKG::NS3::NS4::A const& in) noexcept {
         SFuncs<PKG::A>::AppendCore(s, in);
-        xx::Append(s, ", \"list_nullable_int\" : ", in.list_nullable_int);
-        xx::Append(s, ", \"list_nullable_string\" : ", in.list_nullable_string);
-        xx::Append(s, ", \"list_nullable_data\" : ", in.list_nullable_data);
+        xx::Append(s, ", \"list_nullable_int\":", in.list_nullable_int);
+        xx::Append(s, ", \"list_nullable_string\":", in.list_nullable_string);
+        xx::Append(s, ", \"list_nullable_data\":", in.list_nullable_data);
     }
 #ifndef CUSTOM_INITCASCADE_PKG_NS3_NS4_A
 	int CFuncs<PKG::NS3::NS4::A, void>::Cascade(void* const& o, PKG::NS3::NS4::A const& in) noexcept {
@@ -150,9 +150,9 @@ namespace xx {
     }
 	void SFuncs<PKG::B, void>::AppendCore(std::string& s, PKG::B const& in) noexcept {
         SFuncs<PKG::NS3::NS4::A>::AppendCore(s, in);
-        xx::Append(s, ", \"nullable_list_nullable_int\" : ", in.nullable_list_nullable_int);
-        xx::Append(s, ", \"nullable_list_nullable_string\" : ", in.nullable_list_nullable_string);
-        xx::Append(s, ", \"nullable_list_nullable_data\" : ", in.nullable_list_nullable_data);
+        xx::Append(s, ", \"nullable_list_nullable_int\":", in.nullable_list_nullable_int);
+        xx::Append(s, ", \"nullable_list_nullable_string\":", in.nullable_list_nullable_string);
+        xx::Append(s, ", \"nullable_list_nullable_data\":", in.nullable_list_nullable_data);
     }
 #ifndef CUSTOM_INITCASCADE_PKG_B
 	int CFuncs<PKG::B, void>::Cascade(void* const& o, PKG::B const& in) noexcept {
@@ -190,7 +190,7 @@ namespace PKG {
         this->SetToStringFlag(false);
     }
     void Foo::ToStringCore(std::string& s) const noexcept {
-        xx::Append(s, ", \"bs\" : ", this->bs);
+        xx::Append(s, ", \"bs\":", this->bs);
     }
 #ifndef CUSTOM_INITCASCADE_PKG_Foo
     int Foo::Cascade(void* const& o) noexcept {
@@ -225,7 +225,7 @@ namespace PKG {
         this->SetToStringFlag(false);
     }
     void Node::ToStringCore(std::string& s) const noexcept {
-        xx::Append(s, ", \"parent\" : ", this->parent);
+        xx::Append(s, ", \"parent\":", this->parent);
     }
 #ifndef CUSTOM_INITCASCADE_PKG_Node
     int Node::Cascade(void* const& o) noexcept {
@@ -240,11 +240,9 @@ namespace PKG {
     }
     void NodeContainer::Serialize(xx::Serializer& bb) const noexcept {
         bb.Write(this->node);
-        bb.Write(this->foo);
     }
     int NodeContainer::Deserialize(xx::Deserializer& bb) noexcept {
         if (int r = bb.Read(this->node)) return r;
-        if (int r = bb.Read(this->foo)) return r;
         return 0;
     }
     void NodeContainer::ToString(std::string& s) const noexcept {
@@ -262,8 +260,7 @@ namespace PKG {
         this->SetToStringFlag(false);
     }
     void NodeContainer::ToStringCore(std::string& s) const noexcept {
-        xx::Append(s, ", \"node\" : ", this->node);
-        xx::Append(s, ", \"foo\" : ", this->foo);
+        xx::Append(s, ", \"node\":", this->node);
     }
 #ifndef CUSTOM_INITCASCADE_PKG_NodeContainer
     int NodeContainer::Cascade(void* const& o) noexcept {
