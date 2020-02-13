@@ -1,24 +1,51 @@
 #include "xx_serializer.h"
 #include "xx_epoll.h"
 #include "PKG_class.h"
-int main() {
-	{
-		xx::Serializer s;
-		{
-			PKG::NodeContainer nc;
-			xx::MakeTo(nc.node);
-			nc.node->parent = nc.node;
-			xx::CoutSN(nc);
-			s.WriteRoot(nc);
-		}
-		xx::Deserializer ds;
-		ds.SetData(s.GetData());
-		{
-			PKG::NodeContainer o;
-			int r = ds.ReadRoot(o);
-			xx::CoutSN(o, r);
-		}
+#include "xx_sqlite.h"
+
+int main(int argc, char** argv) {
+	xx::SQLite::Connection c(std::string(argv[0]) + ".db3");
+	if (!c) {
+		xx::CoutN("db open failed. code = ", c.lastErrorCode);
+		return c.lastErrorCode;
 	}
+	auto&& Try = [&](std::function<void()>&& f) {
+		try {
+			f();
+		}
+		catch (int const& ec) {
+			xx::CoutN("throw exception: code = ", c.lastErrorCode, ", message = ", c.lastErrorMessage);
+			assert(ec == c.lastErrorCode);
+		}
+	};
+	Try([&] {
+		xx::CoutN(c.Execute<int>("select null"));
+	});
+	Try([&] {
+		xx::CoutN(c.Execute<std::optional<int>>("select null"));
+	});
+	Try([&] {
+		xx::CoutN(c.Execute<std::optional<std::string>>("select 'asdf'"));
+	});
+
+
+	//{
+	//	xx::Serializer s;
+	//	{
+	//		PKG::NodeContainer nc;
+	//		xx::MakeTo(nc.node);
+	//		nc.node->parent = nc.node;
+	//		xx::CoutSN(nc);
+	//		s.WriteRoot(nc);
+	//	}
+	//	xx::Deserializer ds;
+	//	ds.SetData(s.GetData());
+	//	{
+	//		PKG::NodeContainer o;
+	//		int r = ds.ReadRoot(o);
+	//		xx::CoutSN(o, r);
+	//	}
+	//}
 
 	//{
 	//	xx::Serializer s;
