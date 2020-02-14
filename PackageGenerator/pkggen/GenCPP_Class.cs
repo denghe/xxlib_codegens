@@ -60,13 +60,13 @@ namespace " + c.Namespace.Replace(".", "::") + @" {");
 
             sb.Append(c._GetDesc()._GetComment_Cpp(4) + @"
     struct " + c.Name + @";");
-//            if (c._IsUserClass())
-//            {
-//                sb.Append(@"
-//    using " + c.Name + @"_s = std::shared_ptr<" + c.Name + @">;
-//    using " + c.Name + @"_w = std::weak_ptr<" + c.Name + @">;
-//");
-//            }
+            //            if (c._IsUserClass())
+            //            {
+            //                sb.Append(@"
+            //    using " + c.Name + @"_s = std::shared_ptr<" + c.Name + @">;
+            //    using " + c.Name + @"_w = std::weak_ptr<" + c.Name + @">;
+            //");
+            //            }
 
             if (c.Namespace != null && ((i < cs.Count - 1 && cs[i + 1].Namespace != c.Namespace) || i == cs.Count - 1))
             {
@@ -122,12 +122,8 @@ namespace " + e.Namespace.Replace(".", "::") + @" {");
 
         GenH_Class_Fields(sb, c, templateName, o);
 
-
-
         sb.Append(@"
-        XX_CODEGEN_CLASS_HEADER(" + c.Name + ", " + btn + @")");
-
-        sb.Append(@"
+        XX_CODEGEN_CLASS_HEADER(" + c.Name + ", " + btn + @")
     };");
     }
 
@@ -171,14 +167,16 @@ namespace " + e.Namespace.Replace(".", "::") + @" {");
     {
         // 定位到基类
         var bt = c.BaseType;
-        var btn = c._HasBaseType() ? (" : " + bt._GetTypeDecl_Cpp(templateName)) : "";
 
+        var btn = c._HasBaseType() ? (" : " + bt._GetTypeDecl_Cpp(templateName)) : "";
         sb.Append(c._GetDesc()._GetComment_Cpp(4) + @"
     struct " + c.Name + btn + @" {");
 
         GenH_Class_Fields(sb, c, templateName, o);
 
+        btn = c._HasBaseType() ? bt._GetTypeDecl_Cpp(templateName) : "void";
         sb.Append(@"
+        XX_CODEGEN_STRUCT_HEADER(" + c.Name + ", " + btn + @")
     };");
     }
 
@@ -279,6 +277,32 @@ namespace xx {");
         }
         sb.Append(@"
 ");
+    }
+
+    static void GenCPP_CopyAssign(this StringBuilder sb, string templateName, Type c)
+    {
+        sb.Append(@"
+    " + c.Name + @"::" + c.Name + @"(" + c.Name + @"&& o) {
+        this->operator=(std::move(o));
+    }
+    " + c.Name + @"& " + c.Name + @"::operator=(" + c.Name + @"&& o) {");
+        if (c._HasBaseType())
+        {
+            var bt = c.BaseType;
+            var btn = bt._GetTypeDecl_Cpp(templateName);
+            sb.Append(@"
+        this->BaseType::operator=(std::move(o));");
+        }
+        var fs = c._GetFields();
+        foreach (var f in fs)
+        {
+            var ft = f.FieldType;
+            sb.Append(@"
+        std::swap(this->" + f.Name + ", o." + f.Name + ");");
+        }
+        sb.Append(@"
+        return *this;
+    }");
     }
 
     static void GenCPP_Serialize(this StringBuilder sb, string templateName, Type c, bool isThis = true)
@@ -564,6 +588,34 @@ namespace xx {");
 
         sb.Append(@"
 }");    // namespace xx
+
+        sb.Append(@"
+namespace " + templateName + @" {");
+
+        for (int i = 0; i < cs.Count; ++i)
+        {
+            var c = cs[i];
+            if (filter != null && !filter.Contains(c)) continue;
+
+            // namespace c_ns {
+            if (c.Namespace != null && (i == 0 || (i > 0 && cs[i - 1].Namespace != c.Namespace))) // namespace 去重
+            {
+                sb.Append(@"
+namespace " + c.Namespace.Replace(".", "::") + @" {");
+            }
+
+            sb.GenCPP_CopyAssign(templateName, c);
+
+            // namespace }
+            if (c.Namespace != null && ((i < cs.Count - 1 && cs[i + 1].Namespace != c.Namespace) || i == cs.Count - 1))
+            {
+                sb.Append(@"
+}");
+            }
+        }
+
+        sb.Append(@"
+}");    // namespace templateName
     }
 
     static void GenCPP_FuncImpls(this StringBuilder sb, string templateName, List<Type> cs, TemplateLibrary.Filter<TemplateLibrary.CppFilter> filter, TemplateLibrary.TypeIds typeIds)
@@ -588,6 +640,7 @@ namespace " + c.Namespace.Replace(".", "::") + @" {");
     uint16_t " + c.Name + @"::GetTypeId() const noexcept {
         return " + typeIds.types[c] + @";
     }");
+            sb.GenCPP_CopyAssign(templateName, c);
             sb.GenCPP_Serialize(templateName, c);
             sb.GenCPP_Deserialize(templateName, c);
             sb.GenCPP_StrAppends(templateName, c);

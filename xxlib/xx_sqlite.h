@@ -262,8 +262,13 @@ namespace xx {
 			template<typename T = void>
 			T Execute(char const* const& sql, int const& sqlLen);
 
+			// 直接执行一个 SQL 语句. 如果 T 不为 void, 将返回第一行第一列的值. 
 			template<typename T = void, size_t sqlLen>
 			T Execute(char const(&sql)[sqlLen]);
+
+			// try 执行并返回错误码
+			template<size_t sqlLen, typename T>
+			int TryExecute(char const(&sql)[sqlLen], T& outVal) noexcept;
 		};
 
 
@@ -463,6 +468,18 @@ namespace xx {
 		T Connection::Execute(char const(&sql)[sqlLen]) {
 			return Execute<T>(sql, (int)sqlLen);
 		}
+
+		template<size_t sqlLen, typename T>
+		int Connection::TryExecute(char const(&sql)[sqlLen], T& outVal) noexcept {
+			try {
+				outVal = std::move(Execute<T>(sql));
+				return 0;
+			}
+			catch (int const& ec) {
+				return ec;
+			}
+		}
+
 
 		inline void Connection::Attach(char const* const& alias, char const* const& fn) {
 			qAttach.SetParameters(fn, alias)();

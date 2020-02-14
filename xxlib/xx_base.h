@@ -694,12 +694,18 @@ namespace xx {
 /************************************************************************************/
 // 简化生成物头文件部分
 
-#define XX_CODEGEN_CLASS_HEADER(typeName, baseTypeName)					\
+#define XX_CODEGEN_STRUCT_HEADER(typeName, baseTypeName)				\
 typedef typeName ThisType;												\
 typedef baseTypeName BaseType;											\
 typeName() = default;													\
-typeName(typeName const&) = delete;										\
-typeName& operator=(typeName const&) = delete;							\
+typeName(typeName const&) = default;									\
+typeName& operator=(typeName const&) = default;							\
+typeName(typeName &&);													\
+typeName& operator=(typeName &&);
+
+
+#define XX_CODEGEN_CLASS_HEADER(typeName, baseTypeName)					\
+XX_CODEGEN_STRUCT_HEADER(typeName, baseTypeName)						\
 																		\
 void ToString(std::string& s) const noexcept override;					\
 void ToStringCore(std::string& s) const noexcept override;				\
@@ -710,6 +716,11 @@ int Deserialize(xx::Deserializer& bb) noexcept override;				\
 																		\
 int Cascade(void* const& o = nullptr) noexcept override;				\
 int CascadeCore(void* const& o = nullptr) noexcept;
+
+
+
+
+
 
 
 /************************************************************************************/

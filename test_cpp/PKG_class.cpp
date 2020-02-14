@@ -165,8 +165,70 @@ namespace xx {
     }
 }
 namespace PKG {
+namespace NS1 {
+    A::A(A&& o) {
+        this->operator=(std::move(o));
+    }
+    A& A::operator=(A&& o) {
+        std::swap(this->_byte, o._byte);
+        std::swap(this->_sbyte, o._sbyte);
+        std::swap(this->_ushort, o._ushort);
+        std::swap(this->_short, o._short);
+        std::swap(this->_uint, o._uint);
+        std::swap(this->_int, o._int);
+        std::swap(this->_ulong, o._ulong);
+        std::swap(this->_long, o._long);
+        std::swap(this->_float, o._float);
+        std::swap(this->_double, o._double);
+        std::swap(this->_bool, o._bool);
+        std::swap(this->_string, o._string);
+        std::swap(this->_data, o._data);
+        return *this;
+    }
+}
+    A::A(A&& o) {
+        this->operator=(std::move(o));
+    }
+    A& A::operator=(A&& o) {
+        this->BaseType::operator=(std::move(o));
+        std::swap(this->nullable_int, o.nullable_int);
+        std::swap(this->nullable_string, o.nullable_string);
+        std::swap(this->nullable_data, o.nullable_data);
+        return *this;
+    }
+namespace NS3::NS4 {
+    A::A(A&& o) {
+        this->operator=(std::move(o));
+    }
+    A& A::operator=(A&& o) {
+        this->BaseType::operator=(std::move(o));
+        std::swap(this->list_nullable_int, o.list_nullable_int);
+        std::swap(this->list_nullable_string, o.list_nullable_string);
+        std::swap(this->list_nullable_data, o.list_nullable_data);
+        return *this;
+    }
+}
+    B::B(B&& o) {
+        this->operator=(std::move(o));
+    }
+    B& B::operator=(B&& o) {
+        this->BaseType::operator=(std::move(o));
+        std::swap(this->nullable_list_nullable_int, o.nullable_list_nullable_int);
+        std::swap(this->nullable_list_nullable_string, o.nullable_list_nullable_string);
+        std::swap(this->nullable_list_nullable_data, o.nullable_list_nullable_data);
+        return *this;
+    }
+}
+namespace PKG {
     uint16_t Foo::GetTypeId() const noexcept {
         return 13002;
+    }
+    Foo::Foo(Foo&& o) {
+        this->operator=(std::move(o));
+    }
+    Foo& Foo::operator=(Foo&& o) {
+        std::swap(this->bs, o.bs);
+        return *this;
     }
     void Foo::Serialize(xx::Serializer& bb) const noexcept {
         bb.Write(this->bs);
@@ -203,6 +265,13 @@ namespace PKG {
     uint16_t Node::GetTypeId() const noexcept {
         return 13001;
     }
+    Node::Node(Node&& o) {
+        this->operator=(std::move(o));
+    }
+    Node& Node::operator=(Node&& o) {
+        std::swap(this->parent, o.parent);
+        return *this;
+    }
     void Node::Serialize(xx::Serializer& bb) const noexcept {
         bb.Write(this->parent);
     }
@@ -237,6 +306,13 @@ namespace PKG {
     }
     uint16_t NodeContainer::GetTypeId() const noexcept {
         return 13003;
+    }
+    NodeContainer::NodeContainer(NodeContainer&& o) {
+        this->operator=(std::move(o));
+    }
+    NodeContainer& NodeContainer::operator=(NodeContainer&& o) {
+        std::swap(this->node, o.node);
+        return *this;
     }
     void NodeContainer::Serialize(xx::Serializer& bb) const noexcept {
         bb.Write(this->node);

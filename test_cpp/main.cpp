@@ -4,29 +4,42 @@
 #include "xx_sqlite.h"
 
 int main(int argc, char** argv) {
-	xx::SQLite::Connection c(std::string(argv[0]) + ".db3");
-	if (!c) {
-		xx::CoutN("db open failed. code = ", c.lastErrorCode);
-		return c.lastErrorCode;
-	}
-	auto&& Try = [&](std::function<void()>&& f) {
-		try {
-			f();
-		}
-		catch (int const& ec) {
-			xx::CoutN("throw exception: code = ", c.lastErrorCode, ", message = ", c.lastErrorMessage);
-			assert(ec == c.lastErrorCode);
-		}
-	};
-	Try([&] {
-		xx::CoutN(c.Execute<int>("select null"));
-	});
-	Try([&] {
-		xx::CoutN(c.Execute<std::optional<int>>("select null"));
-	});
-	Try([&] {
-		xx::CoutN(c.Execute<std::optional<std::string>>("select 'asdf'"));
-	});
+
+	PKG::A a;
+	a.nullable_string = "asdf";
+	xx::CoutN(a);
+	auto b = std::move(a);
+	xx::CoutN(a);
+	xx::CoutN(b);
+
+
+
+	//xx::SQLite::Connection c(std::string(argv[0]) + ".db3");
+	//if (!c) {
+	//	xx::CoutN("db open failed. code = ", c.lastErrorCode);
+	//	return c.lastErrorCode;
+	//}
+	//auto&& DumpError = [&] {
+	//	xx::CoutN("throw exception: code = ", c.lastErrorCode, ", message = ", c.lastErrorMessage);
+	//};
+	//if (int v; c.TryExecute("select null", v)) DumpError(); else xx::CoutN(v);
+	//if (std::optional<int> v; c.TryExecute("select null", v)) DumpError(); else xx::CoutN(v);
+	//if (double v; c.TryExecute("select 1.234", v)) DumpError(); else xx::CoutN(v);
+	//if (std::string v; c.TryExecute("select 'asdf'", v)) DumpError(); else xx::CoutN(v);
+	//if (std::optional<std::string> v; c.TryExecute("select 'qwer'", v)) DumpError(); else xx::CoutN(v);
+
+	//auto&& Try = [&](std::function<void()>&& f) {
+	//	try {
+	//		f();
+	//	}
+	//	catch (int const& ec) {
+	//		xx::CoutN("throw exception: code = ", c.lastErrorCode, ", message = ", c.lastErrorMessage);
+	//		assert(ec == c.lastErrorCode);
+	//	}
+	//};
+	//Try([&] { xx::CoutN(c.Execute<int>("select null")); });
+	//Try([&] { xx::CoutN(c.Execute<std::optional<int>>("select null")); });
+	//Try([&] { xx::CoutN(c.Execute<std::optional<std::string>>("select 'asdf'")); });
 
 
 	//{

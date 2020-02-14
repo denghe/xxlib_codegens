@@ -4,7 +4,7 @@
 
 namespace PKG {
 	struct PkgGenMd5 {
-		inline static const std::string value = "#*MD5<03d06abf8a7e4656685789354adfdc22>*#";
+		inline static const std::string value = "#*MD5<0532f26bd513df873eb404458ab6afcd>*#";
     };
 	struct AllTypesRegister {
         AllTypesRegister();
@@ -45,6 +45,7 @@ namespace NS1 {
         bool _bool = false;
         std::string _string;
         xx::Data _data;
+        XX_CODEGEN_STRUCT_HEADER(A, void)
     };
 }
     // 测试可空值类型
@@ -52,6 +53,7 @@ namespace NS1 {
         std::optional<int32_t> nullable_int;
         std::optional<std::string> nullable_string;
         std::optional<xx::Data> nullable_data;
+        XX_CODEGEN_STRUCT_HEADER(A, PKG::NS1::A)
     };
 namespace NS3::NS4 {
     // 测试可空值类型数组
@@ -59,6 +61,7 @@ namespace NS3::NS4 {
         std::vector<std::optional<int32_t>> list_nullable_int;
         std::vector<std::optional<std::string>> list_nullable_string;
         std::vector<std::optional<xx::Data>> list_nullable_data;
+        XX_CODEGEN_STRUCT_HEADER(A, PKG::A)
     };
 }
     // 测试可空可空值类型数组
@@ -66,6 +69,7 @@ namespace NS3::NS4 {
         std::optional<std::vector<std::optional<int32_t>>> nullable_list_nullable_int;
         std::optional<std::vector<std::optional<std::string>>> nullable_list_nullable_string;
         std::optional<std::vector<std::optional<xx::Data>>> nullable_list_nullable_data;
+        XX_CODEGEN_STRUCT_HEADER(B, PKG::NS3::NS4::A)
     };
     // 包含结构体 B 用于收发. 测试多层 List + Limit
     struct Foo : ::xx::Object {
