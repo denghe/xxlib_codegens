@@ -4,7 +4,7 @@
 
 namespace PKG {
 	struct PkgGenMd5 {
-		inline static const std::string value = "#*MD5<0532f26bd513df873eb404458ab6afcd>*#";
+		inline static const std::string value = "#*MD5<5ab530729b902f155200e3332e4c96c2>*#";
     };
 	struct AllTypesRegister {
         AllTypesRegister();
@@ -23,7 +23,7 @@ namespace NS3::NS4 {
 }
     // 测试可空可空值类型数组
     struct B;
-    // 包含结构体 B 用于收发. 测试多层 List + Limit
+    // 测试多层 List + Limit
     struct Foo;
     // 测试 Weak 递归引用
     struct Node;
@@ -71,9 +71,12 @@ namespace NS3::NS4 {
         std::optional<std::vector<std::optional<xx::Data>>> nullable_list_nullable_data;
         XX_CODEGEN_STRUCT_HEADER(B, PKG::NS3::NS4::A)
     };
-    // 包含结构体 B 用于收发. 测试多层 List + Limit
+    // 测试多层 List + Limit
     struct Foo : ::xx::Object {
-        std::vector<std::vector<std::optional<PKG::B>>> bs;
+        std::vector<std::vector<std::optional<PKG::B>>> list_list_nullable_b;
+        std::vector<std::vector<std::string>> list_list_string;
+        std::optional<std::vector<std::optional<std::vector<std::optional<std::string>>>>> nullable_list_nullable_list_nullable_string;
+        std::vector<std::vector<xx::Data>> list_list_data;
         XX_CODEGEN_CLASS_HEADER(Foo, ::xx::Object)
     };
     // 测试 Weak 递归引用

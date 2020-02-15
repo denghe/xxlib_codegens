@@ -5,13 +5,18 @@
 
 int main(int argc, char** argv) {
 
-	PKG::A a;
-	a.nullable_string = "asdf";
-	xx::CoutN(a);
-	auto b = std::move(a);
-	xx::CoutN(a);
-	xx::CoutN(b);
+	float f = std::numeric_limits<float>::quiet_NaN();
+	std::cout << (f>1) << std::endl;
+	std::cout << (f<1) << std::endl;
 
+	//PKG::A a;
+	//a.nullable_string = "asdf";
+	//xx::CoutN("a = ", a);
+	//auto b = std::move(a);
+	//xx::CoutN("a = ", a);
+	//xx::CoutN("b = ", b);
+	//a = b;
+	//xx::CoutN("a = ", a);
 
 
 	//xx::SQLite::Connection c(std::string(argv[0]) + ".db3");

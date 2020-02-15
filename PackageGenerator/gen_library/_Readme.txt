@@ -45,13 +45,13 @@ List<T>                                  // 变长容器, 可多层. T 可以是
 Struct                                   // 标记一个 class 生成时视作 struct( 通常用于写继承之时以突破 c# 描述语言 本身限制 )
 
 Desc( "注释" )                           // 标记 class | struct | field 生成指定备注
-Limit(最大长)                            // 标记 field, 对应 string, bbuffer, list 等容器类型, 提供 反序列化 时的长度保护, 避免申请大量内存. 多级 list 标多个
-NaN, Infinity                            // 标记当反列化 浮点 时, 如果值是 nan / infinity, 就替换成指定 Value
-Property                                 // 标记一个field 以 "Property" 方式生成. 例如 int xxxx { get; set; } ( c# only )
+Limit(限长)                              // 标记 field, 对应 string, bbuffer, list 等容器类型, 提供 反序列化 时的长度保护, 避免申请大量内存. 多级 list 标多个
 Include                                  // C++: 生成物中的相应类将生成一句 #include "rootname_namespace_class.inc" 在 .h 的类代码 的最上方
 Custom                                   // 令指定 field 使用 自定义 序列化 / 反序列化 所用函数
 
 External                                 // 标记在 enum | class | struct 上，表达其为外部引用类型，不生成任何代码. 其本身所处命名空间与实际对应
+
+Property                                 // 标记一个field 以 "Property" 方式生成. 例如 int xxxx { get; set; } ( c# only )
 
 CppFilter                                // 标记在 interface 上( 随便写个interface ), 以告知生成器 namespace 白名单过滤规则. 可多行( for cpp )
 CSharpFilter                             // 标记在 interface 上( 随便写个interface ), 以告知生成器 namespace 白名单过滤规则. 可多行( for c# )

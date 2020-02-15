@@ -15,9 +15,7 @@ namespace NS1
         int _int;
         ulong _ulong;
         long _long;
-        [Nan(0), Infinity(0)]
         float _float;
-        [Nan(0), Infinity(0)]
         double _double;
         bool _bool;
         [Limit(16)]
@@ -57,11 +55,20 @@ class B : NS3.NS4.A
     Nullable<List<Nullable<byte[]>>> nullable_list_nullable_data;
 }
 
-[Desc("包含结构体 B 用于收发. 测试多层 List + Limit")]
+[Desc("测试多层 List + Limit")]
 class Foo
 {
     [Limit(1), Limit(3)]
-    List<List<Nullable<B>>> bs;
+    List<List<Nullable<B>>> list_list_nullable_b;
+
+    [Limit(1), Limit(1), Limit(4)]
+    List<List<string>> list_list_string;
+
+    [Limit(1), Limit(1), Limit(4)]
+    Nullable<List<Nullable<List<Nullable<string>>>>> nullable_list_nullable_list_nullable_string;
+
+    [Limit(1), Limit(1), Limit(4)]
+    List<List<byte[]>> list_list_data;
 }
 
 [Desc("测试 Weak 递归引用")]

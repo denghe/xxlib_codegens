@@ -227,14 +227,23 @@ namespace PKG {
         this->operator=(std::move(o));
     }
     Foo& Foo::operator=(Foo&& o) {
-        std::swap(this->bs, o.bs);
+        std::swap(this->list_list_nullable_b, o.list_list_nullable_b);
+        std::swap(this->list_list_string, o.list_list_string);
+        std::swap(this->nullable_list_nullable_list_nullable_string, o.nullable_list_nullable_list_nullable_string);
+        std::swap(this->list_list_data, o.list_list_data);
         return *this;
     }
     void Foo::Serialize(xx::Serializer& bb) const noexcept {
-        bb.Write(this->bs);
+        bb.Write(this->list_list_nullable_b);
+        bb.Write(this->list_list_string);
+        bb.Write(this->nullable_list_nullable_list_nullable_string);
+        bb.Write(this->list_list_data);
     }
     int Foo::Deserialize(xx::Deserializer& bb) noexcept {
-        if (int r = bb.ReadLimit<3, 1>(this->bs)) return r;
+        if (int r = bb.ReadLimit<1, 3>(this->list_list_nullable_b)) return r;
+        if (int r = bb.ReadLimit<1, 1, 4>(this->list_list_string)) return r;
+        if (int r = bb.ReadLimit<1, 1, 4>(this->nullable_list_nullable_list_nullable_string)) return r;
+        if (int r = bb.ReadLimit<1, 1, 4>(this->list_list_data)) return r;
         return 0;
     }
     void Foo::ToString(std::string& s) const noexcept {
@@ -252,7 +261,10 @@ namespace PKG {
         this->SetToStringFlag(false);
     }
     void Foo::ToStringCore(std::string& s) const noexcept {
-        xx::Append(s, ", \"bs\":", this->bs);
+        xx::Append(s, ", \"list_list_nullable_b\":", this->list_list_nullable_b);
+        xx::Append(s, ", \"list_list_string\":", this->list_list_string);
+        xx::Append(s, ", \"nullable_list_nullable_list_nullable_string\":", this->nullable_list_nullable_list_nullable_string);
+        xx::Append(s, ", \"list_list_data\":", this->list_list_data);
     }
 #ifndef CUSTOM_INITCASCADE_PKG_Foo
     int Foo::Cascade(void* const& o) noexcept {

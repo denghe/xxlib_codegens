@@ -214,8 +214,8 @@ namespace xx {
 
 
 		// 读 string 同时检查长度限制
-		template<size_t limit>
-		int ReadLimit(std::string& out) {
+		template<size_t limit, size_t ...limits>
+		int ReadLimitCore(std::string& out) {
 			size_t siz = 0;
 			if (auto r = Read(siz)) return r;
 			if (limit && siz > limit) return -1;
@@ -226,8 +226,8 @@ namespace xx {
 		}
 
 		// 读 Data 同时检查长度限制
-		template<size_t limit>
-		int ReadLimit(Data& out) {
+		template<size_t limit, size_t ...limits>
+		int ReadLimitCore(Data& out) {
 			assert(&out != this);
 			size_t siz = 0;
 			if (auto r = Read(siz)) return r;
@@ -239,34 +239,51 @@ namespace xx {
 			return 0;
 		}
 
-		// 读 vector<vector<vector<... 同时检查长度限制
-		template<size_t limit, size_t ...limits, typename T, typename ENABLED = std::enable_if_t<xx::IsVector_v<T> && xx::DeepLevel_v<T> == sizeof...(limits) + 1>>
-		int ReadLimit(T& out) {
+		// 读 vector 同时检查长度限制
+		template<size_t limit, size_t ...limits, typename T>
+		int ReadLimitCore(std::vector<T>& out) {
 			size_t siz = 0;
 			if (auto rtv = Read(siz)) return rtv;
 			if (limit != 0 && siz > limit) return -1;
 			if (offset + siz > len) return -2;
 			out.resize(siz);
-			auto buf = out.data();
 			if (siz == 0) return 0;
+			auto outBuf = out.data();
 			if constexpr (sizeof...(limits)) {
-				static_assert(IsVector_v<typename T::value_type>);
 				for (size_t i = 0; i < siz; ++i) {
-					if (int r = ReadLimit<limits...>(buf[i])) return r;
+					if (int r = ReadLimitCore<limits...>(outBuf[i])) return r;
 				}
 			}
 			else {
 				if constexpr (sizeof(T) == 1 || std::is_same_v<float, T>) {
-					::memcpy(buf, buf + offset, siz * sizeof(T));
+					::memcpy(outBuf, buf + offset, siz * sizeof(T));
 					offset += siz * sizeof(T);
 				}
 				else {
 					for (size_t i = 0; i < siz; ++i) {
-						if (int r = Read(buf[i])) return r;
+						if (int r = Read(outBuf[i])) return r;
 					}
 				}
 			}
 			return 0;
+		}
+
+		// 读 optional<容器> 传递长度限制到下一级
+		template<size_t ...limits, typename T>
+		int ReadLimitCore(std::optional<T>& out) {
+			char hasValue = 0;
+			if (int r = Read(hasValue)) return r;
+			if (!hasValue) return 0;
+			if (!out.has_value()) {
+				out.emplace();
+			}
+			return ReadLimitCore<limits...>(out.value());
+		}
+
+		// 读出容器并做长度限制检查
+		template<size_t...limits, typename T, typename ENABLED = std::enable_if_t<xx::DeepLevel_v<T> == sizeof...(limits)>>
+		int ReadLimit(T& out) {
+			return ReadLimitCore<limits...>(out);
 		}
 
 
@@ -335,7 +352,7 @@ namespace xx {
 
 	// 标识内存可移动
 	template<>
-	struct IsTrivial<Serializer, void> : std::true_type {};	
+	struct IsTrivial<Serializer, void> : std::true_type {};
 	template<>
 	struct IsTrivial<Deserializer, void> : std::true_type {};
 
@@ -573,10 +590,25 @@ namespace xx {
 				}
 			}
 		}
+		// 内容为 ReadLimit 的精简版
 		static inline int Deserialize(Deserializer& bb, std::vector<T>& out) {
-			return bb.ReadLimit<0>(out);
+			size_t siz = 0;
+			if (auto rtv = bb.Read(siz)) return rtv;
+			if (bb.offset + siz > bb.len) return -2;
+			out.resize(siz);
+			if (siz == 0) return 0;
+			auto buf = out.data();
+			if constexpr (sizeof(T) == 1 || std::is_same_v<float, T>) {
+				::memcpy(buf, bb.buf + bb.offset, siz * sizeof(T));
+				bb.offset += siz * sizeof(T);
+			}
+			else {
+				for (size_t i = 0; i < siz; ++i) {
+					if (int r = bb.Read(buf[i])) return r;
+				}
+			}
+			return 0;
+
 		}
 	};
-
-
 }

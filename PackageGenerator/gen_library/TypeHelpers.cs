@@ -222,7 +222,20 @@ public static class TypeHelpers
     /// </summary>
     public static bool _IsContainer(this Type t)
     {
+        // todo: Nullable 包裹的也算容器
+        if(t._IsNullable())
+        {
+            t = t._GetChildType();
+        }
         return t._IsString() || t._IsList() || t._IsData();
+    }
+
+    /// <summary>
+    /// 返回泛型第一个类型
+    /// </summary>
+    public static Type _GetChildType(this Type t)
+    {
+        return t.GenericTypeArguments[0];
     }
 
     /// <summary>

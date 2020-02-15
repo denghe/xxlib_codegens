@@ -61,63 +61,6 @@ namespace TemplateLibrary
         public string luaDefaultValue;
     }
 
-    /// <summary>
-    /// 标记当反列化 float / double 时, 如果值是 nan( not a number ), 就设成 v
-    /// </summary>
-    [System.AttributeUsage(System.AttributeTargets.Field)]
-    public class Nan : System.Attribute
-    {
-        public string value;
-        public Nan(float v)
-        {
-            if (float.IsNaN(v) || float.IsInfinity(v))
-            {
-                throw new System.Exception("不恰当的 NaN 标记值");
-            }
-            value = v.ToString() + "f";
-        }
-        public Nan(double v)
-        {
-            if (double.IsNaN(v) || double.IsInfinity(v))
-            {
-                throw new System.Exception("不恰当的 NaN 标记值");
-            }
-            value = v.ToString();
-        }
-        public Nan()
-        {
-            value = "";
-        }
-    }
-
-    /// <summary>
-    /// 标记当反列化 float / double 时, 如果值是 infinity, 就设成 v
-    /// </summary>
-    [System.AttributeUsage(System.AttributeTargets.Field)]
-    public class Infinity : System.Attribute
-    {
-        public string value;
-        public Infinity(float v)
-        {
-            if (float.IsNaN(v) || float.IsInfinity(v))
-            {
-                throw new System.Exception("不恰当的 Infinity 标记值");
-            }
-            value = v.ToString() + "f";
-        }
-        public Infinity(double v)
-        {
-            if (double.IsNaN(v) || double.IsInfinity(v))
-            {
-                throw new System.Exception("不恰当的 Infinity 标记值");
-            }
-            value = v.ToString();
-        }
-        public Infinity()
-        {
-            value = "";
-        }
-    }
 
     /// <summary>
     /// 针对最外层级的 List, Data, string 做最大长度保护限制
@@ -417,3 +360,62 @@ namespace TemplateLibrary
 //{
 //}
 
+
+
+///// <summary>
+///// 标记当反列化 float / double 时, 如果值是 nan( not a number ), 就设成 v
+///// </summary>
+//[System.AttributeUsage(System.AttributeTargets.Field)]
+//public class Nan : System.Attribute
+//{
+//    public string value;
+//    public Nan(float v)
+//    {
+//        if (float.IsNaN(v) || float.IsInfinity(v))
+//        {
+//            throw new System.Exception("不恰当的 NaN 标记值");
+//        }
+//        value = v.ToString() + "f";
+//    }
+//    public Nan(double v)
+//    {
+//        if (double.IsNaN(v) || double.IsInfinity(v))
+//        {
+//            throw new System.Exception("不恰当的 NaN 标记值");
+//        }
+//        value = v.ToString();
+//    }
+//    public Nan()
+//    {
+//        value = "";
+//    }
+//}
+
+///// <summary>
+///// 标记当反列化 float / double 时, 如果值是 infinity, 就设成 v
+///// </summary>
+//[System.AttributeUsage(System.AttributeTargets.Field)]
+//public class Infinity : System.Attribute
+//{
+//    public string value;
+//    public Infinity(float v)
+//    {
+//        if (float.IsNaN(v) || float.IsInfinity(v))
+//        {
+//            throw new System.Exception("不恰当的 Infinity 标记值");
+//        }
+//        value = v.ToString() + "f";
+//    }
+//    public Infinity(double v)
+//    {
+//        if (double.IsNaN(v) || double.IsInfinity(v))
+//        {
+//            throw new System.Exception("不恰当的 Infinity 标记值");
+//        }
+//        value = v.ToString();
+//    }
+//    public Infinity()
+//    {
+//        value = "";
+//    }
+//}

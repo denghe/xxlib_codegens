@@ -262,18 +262,6 @@ namespace xx {
 	constexpr bool IsVector_v = IsVector<T>::value;
 
 
-	// 计算 std::vector<std::vector<... 嵌套深度
-	template<typename T, typename ENABLED = std::enable_if_t<IsVector_v<T>>>
-	constexpr size_t DeepLevel(T* const& v) {
-		if constexpr (IsVector_v<typename T::value_type>) {
-			return DeepLevel((typename T::value_type*)0) + 1;
-		}
-		else return 1;
-	}
-
-	template<typename T, typename ENABLED = std::enable_if_t<IsVector_v<T>>>
-	constexpr size_t DeepLevel_v = DeepLevel((T*)0);
-
 
 	/************************************************************************************/
 	// pair 系列
@@ -397,6 +385,27 @@ namespace xx {
 
 	template<typename T>
 	using ChildType_t = typename ChildType<T>::type;
+
+
+
+	/************************************************************************************/
+	// 容器深度探测 系列
+
+	struct Data;
+
+
+	// 计算 Container<Container<... 嵌套深度. 返回 0 表明不是 container
+	template<typename T>
+	constexpr size_t DeepLevel(T* const& v) {
+		if constexpr (IsOptional_v<T>) return 0 + DeepLevel((ChildType_t<T>*)0);
+		if constexpr (IsVector_v<T>) return 1 + DeepLevel((ChildType_t<T>*)0);
+		if constexpr (std::is_same_v<T, std::string> || std::is_same_v<T, Data>) return 1;
+		return 0;
+	}
+
+	template<typename T>
+	constexpr size_t DeepLevel_v = DeepLevel((std::decay_t<T>*)0);
+
 
 
 
