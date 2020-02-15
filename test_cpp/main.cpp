@@ -5,9 +5,31 @@
 
 int main(int argc, char** argv) {
 
-	float f = std::numeric_limits<float>::quiet_NaN();
-	std::cout << (f>1) << std::endl;
-	std::cout << (f<1) << std::endl;
+
+
+	{
+		auto&& f = std::make_shared<PKG::Foo>();
+		auto&& list_string = f->list_list_string.emplace_back();
+		list_string.emplace_back("asdf");
+		auto&& list_data = f->list_list_data.emplace_back();
+		list_data.emplace_back(xx::Data{ 1,2,3,4/*,5*/ });
+		f->nullable_list_nullable_list_nullable_string.emplace();
+		auto&& nullable_list_nullable_string = f->nullable_list_nullable_list_nullable_string->emplace_back();
+		nullable_list_nullable_string.emplace();
+		nullable_list_nullable_string->emplace_back("qwert");
+		xx::CoutSN(f);
+		xx::Serializer s;
+		s.WriteRoot(f);
+		xx::Deserializer ds;
+		ds.SetData(s.GetData());
+		int r = ds.ReadRoot(f);
+		xx::CoutSN(f, r);
+	}
+
+
+
+
+
 
 	//PKG::A a;
 	//a.nullable_string = "asdf";
@@ -17,6 +39,8 @@ int main(int argc, char** argv) {
 	//xx::CoutN("b = ", b);
 	//a = b;
 	//xx::CoutN("a = ", a);
+
+
 
 
 	//xx::SQLite::Connection c(std::string(argv[0]) + ".db3");
@@ -84,23 +108,7 @@ int main(int argc, char** argv) {
 
 	//{
 	//	auto&& f = std::make_shared<PKG::Foo>();
-	//	auto&& c0 = f->bs.emplace_back();
-	//	auto&& c0c0 = c0.emplace_back();
-	//	auto&& b = c0c0.emplace();
-	//	b._int = 123;
-	//	b.nullable_data.emplace("asdf", 4);
-	//	xx::CoutSN(f);
-	//	xx::Serializer s;
-	//	s.WriteRoot(f);
-	//	xx::Deserializer ds;
-	//	ds.SetData(s.GetData());
-	//	int r = ds.ReadRoot(f);
-	//	xx::CoutSN(f, r);
-	//}
-
-	//{
-	//	PKG::Foo f;
-	//	auto&& c0 = f.bs.emplace_back();
+	//	auto&& c0 = f->list_list_nullable_b.emplace_back();
 	//	auto&& c0c0 = c0.emplace_back();
 	//	auto&& b = c0c0.emplace();
 	//	b._int = 123;
