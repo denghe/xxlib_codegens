@@ -403,9 +403,6 @@ namespace xx::Epoll {
 		// 撤销自动关闭
 		sg.Cancel();
 
-		// 初始化 recv
-		p->recv.idxs = ep->idxs;
-
 		// 初始化
 		Ref<TcpPeer> alive(p);
 		p->Init();
@@ -611,9 +608,6 @@ namespace xx::Epoll {
 			// 放入容器
 			p = ep->AddItem(std::move(peer));
 			kcps.Add(conv, p);
-
-			// 初始化 recv
-			p->recv.idxs = ep->idxs;
 
 			// 初始化
 			Ref<KcpPeer> alive(p);
@@ -1187,6 +1181,7 @@ namespace xx::Epoll {
 		xx::MakeTo(ptrs);
 		xx::MakeTo(idxs);
 		serializer.ptrs = ptrs;
+		deserializer.idxs = idxs;
 
 		// 初始化时间伦
 		wheel.resize(wheelLen);
@@ -1196,6 +1191,9 @@ namespace xx::Epoll {
 	}
 
 	inline Context::~Context() {
+		// 清除内存映射
+		deserializer.Reset();
+
 		// 所有 items 析构
 		items.Clear();
 

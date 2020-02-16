@@ -137,13 +137,12 @@ namespace xx {
 		}
 
 
-		//// unsafe: 直接篡改内存( 常见于公用借壳 reader bb )
-		//inline void Reset(char* const& buf = nullptr, size_t const& len = 0, size_t const& cap = 0, size_t const& offset = 0) {
-		//	this->buf = buf;
-		//	this->len = len;
-		//	this->cap = cap;
-		//	this->offset = offset;
-		//}
+		// unsafe: 直接篡改内存( 常见于公用借壳 reader bb )
+		inline void Reset(char* const& buf = nullptr, size_t const& len = 0, size_t const& offset = 0) {
+			this->buf = buf;
+			this->len = len;
+			this->offset = offset;
+		}
 
 		// 与目标 Data 交焕数据. 同时, offset 也会被清 0. 通常用于收到 Data 后想反序列化.
 		inline void SetData(Data& o) {

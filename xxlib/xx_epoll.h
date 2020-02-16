@@ -185,8 +185,8 @@ namespace xx::Epoll {
 		// 对方的 addr( udp 收到数据时就会刷新这个属性. Send 将采用这个属性 )
 		sockaddr_in6 addr;
 
-		// 收数据用堆积容器( 顺便也能用于反序列化 )
-		Deserializer recv;
+		// 收数据用堆积容器
+		Data recv;
 
 		// 读缓冲区内存扩容增量
 		size_t readBufLen = 65536;
@@ -553,6 +553,9 @@ namespace xx::Epoll {
 
 		// 公用序列化器
 		Serializer serializer;
+
+		// 公用反序列化器( 靠篡改内存来使用, 临时映射到 buf )
+		Deserializer deserializer;
 
 		// 公用序列化 写入引用对象时用于理清引用关系的 指针 字典
 		std::shared_ptr<std::unordered_map<void*, size_t>> ptrs;
