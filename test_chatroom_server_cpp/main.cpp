@@ -33,8 +33,8 @@ int main(int argc, char** argv) {
 	messageEx->createTime = xx::NowEpoch10m();
 	messageEx->sender = user2;
 	messageEx->content = "m2";
-	messageEx->contents.push_back("asdf");
-	messageEx->contents.push_back("qwer");
+	messageEx->contents.emplace_back("asdf");
+	messageEx->contents.emplace_back("qwer");
 
 	// ¿´¿´Êä³ö
 	xx::CoutN(room);
