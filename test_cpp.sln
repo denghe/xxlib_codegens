@@ -9,10 +9,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "test_cpp_pkg", "test_cpp_pk
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xxlib", "xxlib\xxlib.vcxitems", "{4B57E4BC-5558-4DE6-B4DA-4490F8C1E34A}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_chatroom_server_cpp", "test_chatroom_server_cpp\test_chatroom_server_cpp.vcxproj", "{8BFA8A93-7954-4563-A349-6533E32736C2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "test_chatroom_server_cpp_pkg", "test_chatroom_server_cpp_pkg\test_chatroom_server_cpp_pkg.csproj", "{C904881D-41F5-4870-BB31-E810F15A9B88}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		xxlib\xxlib.vcxitems*{4b57e4bc-5558-4de6-b4da-4490f8c1e34a}*SharedItemsImports = 9
 		xxlib\xxlib.vcxitems*{8bfa8a93-7954-4563-a349-6533e32736c1}*SharedItemsImports = 4
+		xxlib\xxlib.vcxitems*{8bfa8a93-7954-4563-a349-6533e32736c2}*SharedItemsImports = 4
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -29,6 +34,16 @@ Global
 		{81F5C6DF-64BD-45D7-AE23-6FA75198F4A3}.Debug|x64.Build.0 = Debug|x64
 		{81F5C6DF-64BD-45D7-AE23-6FA75198F4A3}.Release|x64.ActiveCfg = Release|x64
 		{81F5C6DF-64BD-45D7-AE23-6FA75198F4A3}.Release|x64.Build.0 = Release|x64
+		{8BFA8A93-7954-4563-A349-6533E32736C2}.Debug|x64.ActiveCfg = Debug|x64
+		{8BFA8A93-7954-4563-A349-6533E32736C2}.Debug|x64.Build.0 = Debug|x64
+		{8BFA8A93-7954-4563-A349-6533E32736C2}.Debug|x64.Deploy.0 = Debug|x64
+		{8BFA8A93-7954-4563-A349-6533E32736C2}.Release|x64.ActiveCfg = Release|x64
+		{8BFA8A93-7954-4563-A349-6533E32736C2}.Release|x64.Build.0 = Release|x64
+		{8BFA8A93-7954-4563-A349-6533E32736C2}.Release|x64.Deploy.0 = Release|x64
+		{C904881D-41F5-4870-BB31-E810F15A9B88}.Debug|x64.ActiveCfg = Debug|x64
+		{C904881D-41F5-4870-BB31-E810F15A9B88}.Debug|x64.Build.0 = Debug|x64
+		{C904881D-41F5-4870-BB31-E810F15A9B88}.Release|x64.ActiveCfg = Release|x64
+		{C904881D-41F5-4870-BB31-E810F15A9B88}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

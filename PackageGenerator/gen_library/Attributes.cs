@@ -82,7 +82,7 @@ namespace TemplateLibrary
     /// <summary>
     /// 标记一个类需要抠洞在声明和实现部分分别嵌入 namespace_classname.h , .hpp ( cpp only )
     /// </summary>
-    [System.AttributeUsage(System.AttributeTargets.Class)]
+    [System.AttributeUsage(System.AttributeTargets.Class | System.AttributeTargets.Struct)]
     public class Include : System.Attribute
     {
     }
