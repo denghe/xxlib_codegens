@@ -1,5 +1,5 @@
 #pragma once
-#include "xx_object.h"
+#include "xx_base.h"
 namespace xx {
 
 	// 类似数组，当对象不断插入删除时, 其下标并不会发生改变. 有别于基于数组的交换删除.

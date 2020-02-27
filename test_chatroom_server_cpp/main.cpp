@@ -8,6 +8,11 @@ int main(int argc, char** argv) {
 	EP::Context ec;
 	auto&& listener = ec.CreateTcpListener<EP::TcpListenerEx>(12345);
 	if (!listener) return -1;
+	listener->onAccept = [](EP::TcpPeerEx_r const& peer) {
+		peer->SetTimeout(5);
+
+	};
+
 	int r = ec.Run(1);
 	xx::CoutN("exit... r = ", r);
 	std::cin.get();
