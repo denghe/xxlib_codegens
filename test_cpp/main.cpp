@@ -1,6 +1,7 @@
 #include "xx_ref.h"
 
 struct Node : xx::RefBase {
+	std::string name;
 	xx::Ref<Node> parent;
 	std::vector<xx::Ref<Node>> childs;
 	~Node() {
@@ -10,11 +11,20 @@ struct Node : xx::RefBase {
 
 int main(int argc, char** argv) {
 	auto&& n = xx::MakeRef<Node>();
+	n->name = "asdf";
 	n->parent = n;
 	n->childs.push_back(n);
-	std::cout << (n ? "alive" : "dead") << std::endl;
-	n->Dispose();
-	std::cout << (n ? "alive" : "dead") << std::endl;
+
+	try {
+		//std::cout << (n ? "alive" : "dead") << std::endl;
+		std::cout << n->parent->name << std::endl;
+		n->Dispose();
+		std::cout << n->parent->name << std::endl;
+	}
+	catch (int const& en) {
+		std::cout << "throw error number: " << en << std::endl;
+	}
+
 	std::cin.get();
 	return 0;
 }
