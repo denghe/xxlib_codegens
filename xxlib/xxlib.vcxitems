@@ -27,6 +27,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_epoll_tcp_ex.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_guid.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_itempool.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)xx_ref.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_serializer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_coros_boost.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)xx_dict.h" />
