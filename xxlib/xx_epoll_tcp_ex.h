@@ -149,13 +149,22 @@ namespace xx::Epoll {
 		}
 
 	public:
-		~TcpPeerEx() {
+		// 延迟掐线. 会清除所有 callback 并 SetTimeout
+		virtual int DelayDispose(int const& interval) {
+			onReceivePush = nullptr;
+			onReceiveRequest = nullptr;
+			onDisconnect = nullptr;
 			// 析构所有 超时检测 timer
 			for (auto&& iter : requestCBs) {
 				if (iter.second.second) {
 					iter.second.second->Dispose();
 				}
 			}
+			return SetTimeout(interval);
+		}
+
+		~TcpPeerEx() {
+			DelayDispose(0);
 		}
 	};
 	using TcpPeerEx_r = Ref<TcpPeerEx>;
@@ -387,13 +396,22 @@ namespace xx::Epoll {
 		}
 
 	public:
-		~TcpPeerEx2() {
+		// 延迟掐线. 会清除所有 callback 并 SetTimeout
+		virtual int DelayDispose(int const& interval) override {
+			onReceivePushBuf = nullptr;
+			onReceiveRequestBuf = nullptr;
 			// 析构所有 超时检测 timer
 			for (auto&& iter : requestBufCBs) {
 				if (iter.second.second) {
 					iter.second.second->Dispose();
 				}
 			}
+			if (interval == -1) return 0;
+			return this->TcpPeerEx::DelayDispose(interval);
+		}
+
+		~TcpPeerEx2() {
+			DelayDispose(-1);
 		}
 	};
 	using TcpPeerEx2_r = Ref<TcpPeerEx2>;

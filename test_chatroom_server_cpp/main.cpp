@@ -1,18 +1,99 @@
-#include "xx_serializer.h"
-#include "xx_epoll.h"
-#include "xx_epoll_tcp_ex.h"
 #include "PKG_class.h"
 
-namespace EP = xx::Epoll;
+struct Peer : EP::TcpPeerEx {
+	// 和用户双向 bind. 以便于在收到数据时调用其处理函数
+	std::weak_ptr<PKG::Chat::User> user;
+};
+
+struct Listener : EP::TcpListenerEx {
+protected:
+	virtual EP::TcpPeer_u OnCreatePeer() override;
+};
+
+struct Server {
+	EP::Context& ec;
+	EP::Ref<Listener> listener;
+	std::vector<std::shared_ptr<PKG::Chat::User>> users;
+	std::vector<std::shared_ptr<PKG::Chat::Room>> rooms;
+
+	Server(EP::Context& ec);
+	Server(Server const&) = delete;
+	Server& operator=(Server const&) = delete;
+
+	//
+};
+
+
+
+inline EP::TcpPeer_u Listener::OnCreatePeer() {
+	return xx::TryMakeU<Peer>();
+}
+
+inline Server::Server(EP::Context& ec) : ec(ec) {
+	// 弄几个房间出来
+	{
+		auto&& room = rooms.emplace_back();
+		xx::MakeTo(room);
+		room->name = "room_1";
+	}
+	{
+		auto&& room = rooms.emplace_back();
+		xx::MakeTo(room);
+		room->name = "room_2";
+	}
+
+	// 初始化监听器
+	if ((listener = ec.CreateTcpListener<Listener>(12345))) {
+
+		// 建立连接之初, 状态为 匿名, 没有 User bind
+		listener->onAccept = [this](EP::TcpPeerEx_r const& peer) {
+			peer->onReceiveRequest = [this, peer](int const& serial, xx::Object_s&& msg) {
+				// 根据 typeId 路由并处理
+				switch (xx::TryGetTypeId(msg)) {
+				case xx::TypeId_v<PKG::Client_To_ChatServer::Login>: {
+					auto&& o = xx::As<PKG::Client_To_ChatServer::Login>(msg);
+					// 参数检查. 0 长 不让登录
+					if (!o->name.size()) {
+						// 下发错误提示并延迟掐线
+						auto&& m = xx::Make<PKG::ChatServer_To_Client::Login::Fail>();
+						m->reason = "error: name is empty";
+						peer->SendResponse(serial, m);
+						peer->DelayDispose(3);
+						return;
+					}
+
+					// 创建用户, 双向 bind, 重设 peer
+					auto&& u = users.emplace_back();
+					xx::MakeTo(u);
+					//u->
+
+
+					break;
+				}
+				default: {
+					peer->Dispose();
+					return;
+				}
+				}
+
+				// 重设断线超时( 当收到合法数据时 )
+				peer->SetTimeout(5);
+
+				// 数据发回
+				peer->SendResponse(serial, msg);
+			};
+			// 开启超时断线
+			peer->SetTimeout(5);
+		};
+	}
+}
+
+
+
 int main(int argc, char** argv) {
 	EP::Context ec;
-	auto&& listener = ec.CreateTcpListener<EP::TcpListenerEx>(12345);
-	if (!listener) return -1;
-	listener->onAccept = [](EP::TcpPeerEx_r const& peer) {
-		peer->SetTimeout(5);
-
-	};
-
+	Server s(ec);
+	if (!s.listener) return -1;
 	int r = ec.Run(1);
 	xx::CoutN("exit... r = ", r);
 	std::cin.get();

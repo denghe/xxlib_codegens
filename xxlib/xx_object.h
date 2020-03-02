@@ -29,6 +29,9 @@ namespace xx {
 
 	using Object_s = std::shared_ptr<Object>;
 
+	/**************************************************************************************/
+	// SFuncs
+
 	// 适配 T : Object
 	template<typename T>
 	struct SFuncs<T, std::enable_if_t<std::is_base_of_v<Object, T>>> {
@@ -63,7 +66,15 @@ namespace xx {
 		}
 	};
 
-	// BFuncs 适配在 xx_serializer.h
+	/**************************************************************************************/
+	// BFuncs
+
+	// 适配在 xx_serializer.h
+
+
+
+	/**************************************************************************************/
+	// CFuncs
 
 	template<typename T>
 	struct CFuncs<std::shared_ptr<T>, std::enable_if_t<std::is_base_of_v<xx::Object, T>>> {
@@ -71,4 +82,14 @@ namespace xx {
 			return in->Cascade(o);
 		}
 	};
+
+
+	/**************************************************************************************/
+	// TypeId
+
+	// 便于获取可能是 空 的 o 的 typeId. 空 就返回 0
+	inline uint16_t TryGetTypeId(std::shared_ptr<Object> const& o) {
+		return o ? o->GetTypeId() : 0;
+	}
+
 }
