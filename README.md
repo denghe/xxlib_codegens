@@ -10,3 +10,7 @@ PackageGenerator
 生成用批处理参考: gen_test_cpp_pkg.bat
 测试项目：test_cpp*
 
+
+
+
+听说: gcc 编译选项可以加上 -fdata-sections -ffunction-sections，链接选项加上 -Wl,--gc-sections 可以给程序减肥?

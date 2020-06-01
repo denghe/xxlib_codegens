@@ -7,13 +7,20 @@ struct Peer : EP::TcpPeerEx {
 
 struct Listener : EP::TcpListenerEx {
 protected:
+	// 直接创建派生类 Peer
 	virtual EP::TcpPeer_u OnCreatePeer() override;
 };
 
 struct Server {
 	EP::Context& ec;
+
+	// 网络监听器
 	EP::Ref<Listener> listener;
+
+	// 通过了 Login, 没有进入房间的用户在此
 	std::vector<std::shared_ptr<PKG::Chat::User>> users;
+
+	// 房间列表. 用户会移动到具体房间. 每个房间里面也有 users 容器
 	std::vector<std::shared_ptr<PKG::Chat::Room>> rooms;
 
 	Server(EP::Context& ec);
@@ -47,7 +54,11 @@ inline Server::Server(EP::Context& ec) : ec(ec) {
 
 		// 建立连接之初, 状态为 匿名, 没有 User bind
 		listener->onAccept = [this](EP::TcpPeerEx_r const& peer) {
-			peer->onReceiveRequest = [this, peer](int const& serial, xx::Object_s&& msg) {
+			// 还原类型
+			auto p = peer.As<Peer>();
+
+			// 绑定匿名状态下的处理
+			p->onReceiveRequest = [this, p](int const& serial, xx::Object_s&& msg) {
 				// 根据 typeId 路由并处理
 				switch (xx::TryGetTypeId(msg)) {
 				case xx::TypeId_v<PKG::Client_To_ChatServer::Login>: {
@@ -57,30 +68,39 @@ inline Server::Server(EP::Context& ec) : ec(ec) {
 						// 下发错误提示并延迟掐线
 						auto&& m = xx::Make<PKG::ChatServer_To_Client::Login::Fail>();
 						m->reason = "error: name is empty";
-						peer->SendResponse(serial, m);
-						peer->DelayDispose(3);
+						p->SendResponse(serial, m);
+						p->DelayDispose(3);
 						return;
 					}
 
-					// 创建用户, 双向 bind, 重设 peer
+					// 创建用户, 双向 bind
 					auto&& u = users.emplace_back();
 					xx::MakeTo(u);
-					//u->
+					u->name = o->name;
+					//u->room = nullptr;
+					u->peer = p;
+					p->user = u;
 
+					// 绑定已登录状态下的处理
+					p->onReceiveRequest = [u](int const& serial, xx::Object_s&& msg) {
+						// todo
+					};
+
+
+
+					// todo: 下发 登录成功?
+					//// 重设断线超时( 当收到合法数据时 )
+					//p->SetTimeout(5);
+					//// 数据发回
+					//p->SendResponse(serial, msg);
 
 					break;
 				}
 				default: {
-					peer->Dispose();
+					p->Dispose();
 					return;
 				}
 				}
-
-				// 重设断线超时( 当收到合法数据时 )
-				peer->SetTimeout(5);
-
-				// 数据发回
-				peer->SendResponse(serial, msg);
 			};
 			// 开启超时断线
 			peer->SetTimeout(5);
