@@ -126,12 +126,13 @@ public static class Program
     public enum GenTypes : int
     {
         CppClass = 1 << 0,
-        CppClassFilter = 1 << 1,
-        CppSqlite = 1 << 2,
-        CSharpClass = 1 << 3,
-        CSharpMySql = 1 << 4,
-        LuaClassFilter = 1 << 5,
-        MaxValue = 1 << 6
+        CppClassLite = 1 << 1,
+        CppClassFilter = 1 << 2,
+        CppSqlite = 1 << 3,
+        CSharpClass = 1 << 4,
+        CSharpMySql = 1 << 5,
+        LuaClassFilter = 1 << 6,
+        MaxValue = 1 << 7
     }
     public static string GenTypesToString()
     {
@@ -156,9 +157,11 @@ public static class Program
         }
 
         var gt = (int)genTypes;
-        if ((gt & (int)GenTypes.CppClass) > 0)
-        {
+        if ((gt & (int)GenTypes.CppClass) > 0) {
             GenCPP_Class.Gen(asm, outPath, rootNamespace);
+        }
+        if ((gt & (int)GenTypes.CppClassLite) > 0) {
+            GenCPP_Class_Lite.Gen(asm, outPath, rootNamespace);
         }
         if ((gt & (int)GenTypes.CppClassFilter) > 0)
         {
