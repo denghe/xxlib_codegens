@@ -243,10 +243,10 @@ public static class TypeHelpers
     /// </summary>
     public static bool _IsReadOnly<T>(this T t) where T : ICustomAttributeProvider
     {
-        foreach (var r_attribute in t.GetCustomAttributes(false))
+        foreach (var a in t.GetCustomAttributes(false))
         {
-            if (r_attribute is TemplateLibrary.Column)
-                return ((TemplateLibrary.Column)r_attribute).readOnly;
+            if (a is TemplateLibrary.Column)
+                return ((TemplateLibrary.Column)a).readOnly;
         }
         return false;
     }
@@ -1268,10 +1268,10 @@ public static class TypeHelpers
     /// </summary>
     public static int _GetLimit(this ICustomAttributeProvider t)
     {
-        foreach (var r_attribute in t.GetCustomAttributes(false))
+        foreach (var a in t.GetCustomAttributes(false))
         {
-            if (r_attribute is TemplateLibrary.Limit)
-                return ((TemplateLibrary.Limit)r_attribute).value;
+            if (a is TemplateLibrary.Limit)
+                return ((TemplateLibrary.Limit)a).value;
         }
         return 0;
     }
@@ -1282,11 +1282,11 @@ public static class TypeHelpers
     public static List<int> _GetLimits(this ICustomAttributeProvider t)
     {
         var rtv = new List<int>();
-        foreach (var r_attribute in t.GetCustomAttributes(false))
+        foreach (var a in t.GetCustomAttributes(false))
         {
-            if (r_attribute is TemplateLibrary.Limit)
+            if (a is TemplateLibrary.Limit)
             {
-                rtv.Add(((TemplateLibrary.Limit)r_attribute).value);
+                rtv.Add(((TemplateLibrary.Limit)a).value);
             }
         }
         return rtv;
@@ -1299,13 +1299,29 @@ public static class TypeHelpers
     /// </summary>
     public static string _GetDesc(this ICustomAttributeProvider t)
     {
-        foreach (var r_attribute in t.GetCustomAttributes(false))
+        foreach (var a in t.GetCustomAttributes(false))
         {
-            if (r_attribute is TemplateLibrary.Desc)
-                return ((TemplateLibrary.Desc)r_attribute).value;
+            if (a is TemplateLibrary.Desc)
+                return ((TemplateLibrary.Desc)a).value;
         }
         return "";
     }
+
+
+
+
+    /// <summary>
+    /// 获取 Attribute 之 TypeId 值. 未找到将返回 null
+    /// </summary>
+    public static ushort? _GetTypeId(this ICustomAttributeProvider t) {
+        foreach (var a in t.GetCustomAttributes(false)) {
+            if (a is TemplateLibrary.TypeId)
+                return ((TemplateLibrary.TypeId)a).value;
+        }
+        return null;
+    }
+
+
 
 
     /// <summary>
@@ -1313,10 +1329,10 @@ public static class TypeHelpers
     /// </summary>
     public static string _GetSql(this ICustomAttributeProvider t)
     {
-        foreach (var r_attribute in t.GetCustomAttributes(false))
+        foreach (var a in t.GetCustomAttributes(false))
         {
-            if (r_attribute is TemplateLibrary.Sql)
-                return ((TemplateLibrary.Sql)r_attribute).value;
+            if (a is TemplateLibrary.Sql)
+                return ((TemplateLibrary.Sql)a).value;
         }
         return "";
     }
@@ -1340,10 +1356,10 @@ public static class TypeHelpers
 ///// </summary>
 //public static bool? _GetKey(this ICustomAttributeProvider t)
 //{
-//    foreach (var r_attribute in t.GetCustomAttributes(false))
+//    foreach (var a in t.GetCustomAttributes(false))
 //    {
-//        if (r_attribute is TemplateLibrary.Key)
-//            return ((TemplateLibrary.Key)r_attribute).value;
+//        if (a is TemplateLibrary.Key)
+//            return ((TemplateLibrary.Key)a).value;
 //    }
 //    return false;
 //}

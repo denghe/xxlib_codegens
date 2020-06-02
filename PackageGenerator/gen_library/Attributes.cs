@@ -1,6 +1,5 @@
 ﻿// 全是 Attribute
-namespace TemplateLibrary
-{
+namespace TemplateLibrary {
     /// <summary>
     /// 对应 c# Nullable<>, c++ std::optional, lua variable
     /// </summary>
@@ -32,8 +31,7 @@ namespace TemplateLibrary
     /// <summary>
     /// 备注。可用于类/枚举/函数 及其 成员
     /// </summary>
-    public class Desc : System.Attribute
-    {
+    public class Desc : System.Attribute {
         public Desc(string v) { value = v; }
         public string value;
     }
@@ -43,13 +41,11 @@ namespace TemplateLibrary
     /// 外部扩展。命名空间根据类所在实际命名空间获取，去除根模板名。参数如果传 false 则表示该类不支持序列化，无法用于收发
     /// </summary>
     [System.AttributeUsage(System.AttributeTargets.Enum | System.AttributeTargets.Class | System.AttributeTargets.Struct)]
-    public class External : System.Attribute
-    {
+    public class External : System.Attribute {
         public External(bool serializable = true
             , string cppDefaultValue = "nullptr"
             , string csharpDefaultValue = "null"
-            , string luaDefaultValue = "null")
-        {
+            , string luaDefaultValue = "null") {
             this.serializable = serializable;
             this.cppDefaultValue = cppDefaultValue;
             this.csharpDefaultValue = csharpDefaultValue;
@@ -67,10 +63,8 @@ namespace TemplateLibrary
     /// 如果是类似 List List... 多层需要限制的情况, 就写多个 Limit, 有几层写几个
     /// </summary>
     [System.AttributeUsage(System.AttributeTargets.Field | System.AttributeTargets.ReturnValue, AllowMultiple = true)]
-    public class Limit : System.Attribute
-    {
-        public Limit(int value)
-        {
+    public class Limit : System.Attribute {
+        public Limit(int value) {
             this.value = value;
         }
         public int value;
@@ -83,21 +77,18 @@ namespace TemplateLibrary
     /// 标记一个类需要抠洞在声明和实现部分分别嵌入 namespace_classname.h , .hpp ( cpp only )
     /// </summary>
     [System.AttributeUsage(System.AttributeTargets.Class | System.AttributeTargets.Struct)]
-    public class Include : System.Attribute
-    {
+    public class Include : System.Attribute {
     }
 
     /// <summary>
     /// 标记一个类成员通过调用 用户于生成物之外提供的手写版函数实现序列化
     /// </summary>
     [System.AttributeUsage(System.AttributeTargets.Field)]
-    public class Custom : System.Attribute
-    {
+    public class Custom : System.Attribute {
         // 传入 读 和 写 的成员函数名. 函数带1个参数: Serializer/Deserializer. 其实现为自定义读写
         public Custom(string rf, string wf) { this.rf = rf; this.wf = wf; }
         public string rf, wf;
-        public override string ToString()
-        {
+        public override string ToString() {
             throw new System.Exception("please get value from rf | wf");
         }
     }
@@ -110,12 +101,10 @@ namespace TemplateLibrary
     /// Lua 生成物之命名空间过滤( 白名单 ), 用到 生成配置 接口上
     /// </summary>
     [System.AttributeUsage(System.AttributeTargets.Interface, AllowMultiple = true)]
-    public class LuaFilter : System.Attribute
-    {
+    public class LuaFilter : System.Attribute {
         public LuaFilter(string v) { value = v; }
         public string value;
-        public override string ToString()
-        {
+        public override string ToString() {
             return value;
         }
     }
@@ -124,12 +113,10 @@ namespace TemplateLibrary
     /// CPP client 生成物之命名空间过滤( 白名单 ), 用到 生成配置 接口上
     /// </summary>
     [System.AttributeUsage(System.AttributeTargets.Interface, AllowMultiple = true)]
-    public class CppFilter : System.Attribute
-    {
+    public class CppFilter : System.Attribute {
         public CppFilter(string v) { value = v; }
         public string value;
-        public override string ToString()
-        {
+        public override string ToString() {
             return value;
         }
     }
@@ -138,12 +125,10 @@ namespace TemplateLibrary
     /// C# client 生成物之命名空间过滤( 白名单 ), 用到 生成配置 接口上
     /// </summary>
     [System.AttributeUsage(System.AttributeTargets.Interface, AllowMultiple = true)]
-    public class CSharpFilter : System.Attribute
-    {
+    public class CSharpFilter : System.Attribute {
         public CSharpFilter(string v) { value = v; }
         public string value;
-        public override string ToString()
-        {
+        public override string ToString() {
             return value;
         }
     }
@@ -155,11 +140,21 @@ namespace TemplateLibrary
     /************************************************************************************************/
 
     /// <summary>
+    /// 用来做类型到 typeId 的固定映射生成
+    /// </summary>
+    [System.AttributeUsage(System.AttributeTargets.Class | System.AttributeTargets.Struct)]
+    public class TypeId : System.Attribute {
+        public TypeId(ushort value) {
+            this.value = value;
+        }
+        public ushort value;
+    }
+
+    /// <summary>
     /// 用来做类型到 typeId 的固定映射生成. 对应的 interface 的成员长相为  Type _id { get; }
     /// </summary>
     [System.AttributeUsage(System.AttributeTargets.Interface)]
-    public class TypeIdMappings : System.Attribute
-    {
+    public class TypeIdMappings : System.Attribute {
     }
 
 
@@ -167,13 +162,11 @@ namespace TemplateLibrary
     /// TypeId生成配置范围, [s, e)
     /// </summary>
     [System.AttributeUsage(System.AttributeTargets.Interface, AllowMultiple = true)]
-    public class TypeIdRange : System.Attribute
-    {
+    public class TypeIdRange : System.Attribute {
         public TypeIdRange(ushort s, ushort e) { this.s = s; this.e = e; }
         public ushort s;
         public ushort e;
-        public override string ToString()
-        {
+        public override string ToString() {
             return string.Format("[{0}, {1})", s, e);
         }
     }
@@ -187,11 +180,9 @@ namespace TemplateLibrary
     /// 标记一个类成员是一个数据库字段( 填充时仅考虑其出现的顺序而不管其名称 )
     /// </summary>
     [System.AttributeUsage(System.AttributeTargets.Field)]
-    public class Column : System.Attribute
-    {
+    public class Column : System.Attribute {
         public bool readOnly;
-        public Column(bool readOnly = false)
-        {
+        public Column(bool readOnly = false) {
             this.readOnly = readOnly;
         }
     }
@@ -200,56 +191,49 @@ namespace TemplateLibrary
     /// 标记一个类成员在数据库中不可空( 主要是指 String, Data 这种指针类型 )
     /// </summary>
     [System.AttributeUsage(System.AttributeTargets.Field)]
-    public class NotNull : System.Attribute
-    {
+    public class NotNull : System.Attribute {
     }
 
     /// <summary>
     /// 标记一个类成员以 "Property" 方式生成( 例如 int xxxx { get; set; } ( c# only )
     /// </summary>
     [System.AttributeUsage(System.AttributeTargets.Field)]
-    public class Property : System.Attribute
-    {
+    public class Property : System.Attribute {
     }
 
     /// <summary>
     /// 标记一个类成员是在生成的时候跳过某些readOnly字段
     /// </summary>
     [System.AttributeUsage(System.AttributeTargets.Parameter)]
-    public class SkipReadOnly : System.Attribute
-    {
+    public class SkipReadOnly : System.Attribute {
     }
 
     /// <summary>
     /// 标记 interface 对应 mysql 的连接对象
     /// </summary>
     [System.AttributeUsage(System.AttributeTargets.Interface)]
-    public class MySql : System.Attribute
-    {
+    public class MySql : System.Attribute {
     }
 
     /// <summary>
     /// 标记 interface 对应 microsoft sql server 的连接对象
     /// </summary>
     [System.AttributeUsage(System.AttributeTargets.Interface)]
-    public class MsSql : System.Attribute
-    {
+    public class MsSql : System.Attribute {
     }
 
     /// <summary>
     /// 标记 interface 对应 sqlite 的连接对象
     /// </summary>
     [System.AttributeUsage(System.AttributeTargets.Interface)]
-    public class SQLite : System.Attribute
-    {
+    public class SQLite : System.Attribute {
     }
 
     /// <summary>
     /// 标记 TSQL 语句的内容. 用于参数时表示 "不转义" 的字串直接拼接
     /// </summary>
     [System.AttributeUsage(System.AttributeTargets.Method)]
-    public class Sql : System.Attribute
-    {
+    public class Sql : System.Attribute {
         public string value;
         public Sql(string v) { value = v; }
     }
@@ -258,8 +242,7 @@ namespace TemplateLibrary
     /// 标记函数参数为不转义的字符串, 或是不纳入"传参" 的部分
     /// </summary>
     [System.AttributeUsage(System.AttributeTargets.Parameter)]
-    public class Literal : System.Attribute
-    {
+    public class Literal : System.Attribute {
     }
 
     /// <summary>

@@ -107,18 +107,14 @@ public static class Program
         }
 
         Console.WriteLine("开始生成");
-#if !DEBUG
         try
         {
-#endif
             Gen((GenTypes)genTypes, rootNamespace, outPath, asm);
-#if !DEBUG
         }
         catch (Exception ex)
         {
             TipsAndExit("生成失败: " + ex.Message + "\r\n" + ex.StackTrace);
         }
-#endif
         TipsAndExit("生成完毕");
     }
 

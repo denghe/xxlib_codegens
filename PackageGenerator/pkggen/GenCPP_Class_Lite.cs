@@ -126,10 +126,10 @@ namespace " + c.Namespace.Replace(".", "::") + @" {");
     }
 
 
-    static void GenH_StructTemplates(this StringBuilder sb, List<Type> cs, TemplateLibrary.TypeIds typeIds, string templateName) {
+    static void GenH_StructTemplates(this StringBuilder sb, List<Type> cs, string templateName) {
         sb.Append(@"
 namespace xx {");
-        cs = cs._GetStructs();
+
         foreach (var c in cs) {
             var ctn = c._GetTypeDecl_Cpp(templateName);
 
@@ -141,17 +141,20 @@ namespace xx {");
 	};");
         }
 
-        // todo: 获取所有标记有 TypeId attribute 的类 生成
-
-        // 遍历所有 type 及成员数据类型 生成  Deserializer.Register< T >( typeId ) 函数组
-        foreach (var kv in typeIds.types) {
-            var ct = kv.Key;
-            if (ct._IsString() || ct._IsData() || ct._IsExternal() && !ct._GetExternalSerializable()) continue;
-            var typeId = kv.Value;
-            var ctn = ct._GetTypeDecl_Cpp(templateName);
-
-            sb.Append(@"
+        var typeIdMappings = new Dictionary<ushort, Type>();
+        // 获取所有标记有 TypeId 的类 生成映射
+        foreach (var c in cs) {
+            if (c._IsExternal()) continue;
+            var ctn = c._GetTypeDecl_Cpp(templateName);
+            var typeId = c._GetTypeId();
+            if (typeId != null) {
+                if(typeIdMappings.ContainsKey(typeId.Value)) {
+                    throw new Exception("存在重复的 typeId: " + typeId + " 位于类型: " + c.FullName + " 和 " + typeIdMappings[typeId.Value].FullName);
+                }
+                typeIdMappings.Add(typeId.Value, c);
+                sb.Append(@"
     template<> struct TypeId<" + ctn + @"> { static const uint16_t value = " + typeId + @"; };");
+            }
         }
 
         sb.Append(@"
@@ -281,9 +284,7 @@ namespace " + c.Namespace.Replace(".", "::") + @" {");
 
         sb.Append(@"
 namespace xx {");
-        for (int i = 0; i < cs.Count; ++i) {
-            var c = cs[i];
-
+        foreach (var c in cs) {
             sb.GenCPP_Serialize(templateName, c);
             sb.GenCPP_Deserialize(templateName, c);
         }
@@ -296,7 +297,6 @@ namespace xx {");
 
     public static void Gen(Assembly asm, string outDir, string templateName) {
         var ts = asm._GetTypes();
-        var typeIds = new TemplateLibrary.TypeIds(asm);
 
         var sb = new StringBuilder();
         var cs = ts._GetClasssStructs();
@@ -307,7 +307,7 @@ namespace xx {");
         sb.GenH_Enums(ts);
         sb.GenH_ClassAndStruct(cs, templateName, asm);
         sb.GenH_Tail(templateName);
-        sb.GenH_StructTemplates(cs, typeIds, templateName);
+        sb.GenH_StructTemplates(cs, templateName);
         sb.GenCPP_FuncImpls(templateName, cs);
         sb._WriteToFile(Path.Combine(outDir, templateName + "_class_lite.h"));
     }
