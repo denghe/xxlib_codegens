@@ -11,7 +11,8 @@ using System.Collections.Generic;
 public static class GenCPP_Class_Lite {
     static void GenH_Head(this StringBuilder sb, string templateName) {
         sb.Append(@"#pragma once
-#include ""xx_data_view.h""
+#include ""xx_datareader.h""
+#include """ +templateName + @"_class_lite.h.inc""  // user create it for extend include files
 namespace " + templateName + @" {
 	struct PkgGenMd5 {
 		inline static const std::string value = """ + StringHelpers.MD5PlaceHolder + @""";
@@ -85,6 +86,11 @@ namespace " + c.Namespace.Replace(".", "::") + @" {");
 
         sb.GenH_Struct_Fields(c, templateName, o);
         sb.GenH_Struct_CopyAssign(templateName, c);
+
+        if (c._Has<TemplateLibrary.Include>()) {
+            sb.Append(@"
+#include """ + c._GetTypeDecl_Lua(templateName) + @".inc""");
+        }
 
         sb.Append(@"
     };");
@@ -167,10 +173,10 @@ namespace xx {");
 
     static void GenCPP_Struct_CopyAssign(this StringBuilder sb, string templateName, Type c) {
         sb.Append(@"
-    inline " + c.Name + @"::" + c.Name + @"(" + c.Name + @"&& o) {
+    " + c.Name + @"::" + c.Name + @"(" + c.Name + @"&& o) {
         this->operator=(std::move(o));
     }
-    inline " + c.Name + @"& " + c.Name + @"::operator=(" + c.Name + @"&& o) {");
+    " + c.Name + @"& " + c.Name + @"::operator=(" + c.Name + @"&& o) {");
         if (c._HasBaseType()) {
             var bt = c.BaseType;
             var btn = bt._GetTypeDecl_Cpp(templateName);
@@ -191,7 +197,7 @@ namespace xx {");
     static void GenCPP_Serialize(this StringBuilder sb, string templateName, Type c) {
         var ctn = c._GetTypeDecl_Cpp(templateName);
         sb.Append(@"
-	inline void DataFuncs<" + ctn + @", void>::Write(Data& d, " + ctn + @" const& in) noexcept {");
+	void DataFuncs<" + ctn + @", void>::Write(Data& d, " + ctn + @" const& in) noexcept {");
 
         if (c._HasBaseType()) {
             var bt = c.BaseType;
@@ -221,7 +227,7 @@ namespace xx {");
     static void GenCPP_Deserialize(this StringBuilder sb, string templateName, Type c) {
         var ctn = c._GetTypeDecl_Cpp(templateName);
         sb.Append(@"
-	inline int DataFuncs<" + ctn + @", void>::Read(DataReader& d, " + ctn + @"& out) noexcept {");
+	int DataFuncs<" + ctn + @", void>::Read(DataReader& d, " + ctn + @"& out) noexcept {");
 
         if (c._HasBaseType()) {
             var bt = c.BaseType;
@@ -253,11 +259,13 @@ namespace xx {");
     }");
     }
 
+    static void GenCPP_Includes(this StringBuilder sb, string templateName) {
+        sb.Append("#include \"" + templateName + @"_class_lite.h""
+#include """ + templateName + @"_class_lite.cpp.inc""");
+    }
+
     static void GenCPP_FuncImpls(this StringBuilder sb, string templateName, List<Type> cs) {
         sb.Append(@"
-
-
-
 namespace " + templateName + @" {");
 
         for (int i = 0; i < cs.Count; ++i) {
@@ -308,7 +316,10 @@ namespace xx {");
         sb.GenH_ClassAndStruct(cs, templateName, asm);
         sb.GenH_Tail(templateName);
         sb.GenH_StructTemplates(cs, templateName);
-        sb.GenCPP_FuncImpls(templateName, cs);
         sb._WriteToFile(Path.Combine(outDir, templateName + "_class_lite.h"));
+        sb.Clear();
+        sb.GenCPP_Includes(templateName);
+        sb.GenCPP_FuncImpls(templateName, cs);
+        sb._WriteToFile(Path.Combine(outDir, templateName + "_class_lite.cpp"));
     }
 }
