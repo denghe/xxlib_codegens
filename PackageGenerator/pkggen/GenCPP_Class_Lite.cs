@@ -181,7 +181,7 @@ namespace xx {");
             var bt = c.BaseType;
             var btn = bt._GetTypeDecl_Cpp(templateName);
             sb.Append(@"
-        this->BaseType::operator=(std::move(o));");
+        this->" + btn + "::operator=(std::move(o));");
         }
         var fs = c._GetFields();
         foreach (var f in fs) {
