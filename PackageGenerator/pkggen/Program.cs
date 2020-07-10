@@ -147,13 +147,11 @@ public static class Program
     {
         // 提示：生成时, md5 部分内容用 GenUtils.MD5PlaceHolder 占位. 存盘时会被替换为真正 md5
 
-        if (!GenTypeId.Gen(asm, outPath, rootNamespace))
-        {
-            TipsAndExit("生成停止：" + rootNamespace + "_TypeIdMappings.cs 已生成. 请将其放入 源码文件或目录清单 并再次生成. ");
-        }
-
         var gt = (int)genTypes;
         if ((gt & (int)GenTypes.CppClass) > 0) {
+            if (!GenTypeId.Gen(asm, outPath, rootNamespace)) {
+                TipsAndExit("生成停止：" + rootNamespace + "_TypeIdMappings.cs 已生成. 请将其放入 源码文件或目录清单 并再次生成. ");
+            }
             GenCPP_Class.Gen(asm, outPath, rootNamespace);
         }
         if ((gt & (int)GenTypes.CppClassLite) > 0) {
@@ -161,22 +159,37 @@ public static class Program
         }
         if ((gt & (int)GenTypes.CppClassFilter) > 0)
         {
+            if (!GenTypeId.Gen(asm, outPath, rootNamespace)) {
+                TipsAndExit("生成停止：" + rootNamespace + "_TypeIdMappings.cs 已生成. 请将其放入 源码文件或目录清单 并再次生成. ");
+            }
             GenCPP_Class.Gen(asm, outPath, rootNamespace, new TemplateLibrary.Filter<TemplateLibrary.CppFilter>(asm));
         }
         if ((gt & (int)GenTypes.CppSqlite) > 0)
         {
+            if (!GenTypeId.Gen(asm, outPath, rootNamespace)) {
+                TipsAndExit("生成停止：" + rootNamespace + "_TypeIdMappings.cs 已生成. 请将其放入 源码文件或目录清单 并再次生成. ");
+            }
             GenCPP_SQLite.Gen(asm, outPath, rootNamespace);
         }
         if ((gt & (int)GenTypes.CSharpClass) > 0)
         {
+            if (!GenTypeId.Gen(asm, outPath, rootNamespace)) {
+                TipsAndExit("生成停止：" + rootNamespace + "_TypeIdMappings.cs 已生成. 请将其放入 源码文件或目录清单 并再次生成. ");
+            }
             GenCS_Class.Gen(asm, outPath, rootNamespace);
         }
         if ((gt & (int)GenTypes.CSharpMySql) > 0)
         {
+            if (!GenTypeId.Gen(asm, outPath, rootNamespace)) {
+                TipsAndExit("生成停止：" + rootNamespace + "_TypeIdMappings.cs 已生成. 请将其放入 源码文件或目录清单 并再次生成. ");
+            }
             GenCS_MySql.Gen(asm, outPath, rootNamespace);
         }
         if ((gt & (int)GenTypes.LuaClassFilter) > 0)
         {
+            if (!GenTypeId.Gen(asm, outPath, rootNamespace)) {
+                TipsAndExit("生成停止：" + rootNamespace + "_TypeIdMappings.cs 已生成. 请将其放入 源码文件或目录清单 并再次生成. ");
+            }
             GenLUA_Class.Gen(asm, outPath, rootNamespace, new TemplateLibrary.Filter<TemplateLibrary.LuaFilter>(asm));
         }
         // ...

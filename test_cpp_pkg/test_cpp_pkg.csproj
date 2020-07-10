@@ -40,10 +40,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Classes.cs" />
-    <Compile Include="Externals.cs" />
-    <Compile Include="PKG_TypeIdMappings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="__GenSettings.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
