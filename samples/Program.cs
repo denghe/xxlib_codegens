@@ -1,40 +1,7 @@
 ﻿using System;
+using System.Diagnostics;
 
-namespace xx {
-    class Object {
-        public int useCount { get; private set; }
-        public void Hold() {
-            ++useCount;
-        }
-        public void Unhold() {
-            --useCount;
-        }
-    }
-
-    // 意思意思
-    class List<T> where T : Object, new() {
-        System.Collections.Generic.List<T> items = new System.Collections.Generic.List<T>();
-        public void Add(T v) {
-            v?.Hold();
-            items.Add(v);
-
-        }
-        public void RemoveAt(int idx) {
-            items[idx]?.Unhold();
-            items.RemoveAt(idx);
-        }
-        public T this[int idx] {
-            get { return items[idx]; }
-            set {
-                items[idx]?.Unhold();
-                value.Hold();
-                items[idx] = value;
-            }
-        }
-    }
-}
-
-class Node : xx.Object {
+public class Node : xx.Object {
     #region std::weak_ptr<Node> parent
     Node _parent;
     public Node parent {
@@ -53,9 +20,15 @@ class Node : xx.Object {
         get { return _childs; }
     }
     #endregion
+    #region std::vector<std::weak_ptr<Node>> weakChilds
+    xx.List<xx.Weak<Node>> _weakChilds = new xx.List<xx.Weak<Node>>();
+    public xx.List<xx.Weak<Node>> weakChilds {
+        get { return _weakChilds; }
+    }
+    #endregion
 }
 
-class Env {
+public class Env {
     #region std::shared_ptr<Node> n
     Node _n;
     public Node n {
@@ -93,8 +66,16 @@ class Env {
     public void Test() {
         n = new Node();
         n.parent = n;
-        n.childs.Add(new Node());
-        Console.WriteLine(n.useCount + ", " + n.childs[0].useCount);
+        var c = new Node();
+        n.childs.Add(c);
+        n.childs.Add(c);
+        n.childs.Add(c);
+        n.weakChilds.Add(c);
+        n.weakChilds.Add(c);
+        n.weakChilds.Add(c);
+        Console.WriteLine(n.useCount + ", " + c.useCount);
+        n.childs.Clear();
+        Console.WriteLine(n.useCount + ", " + c.useCount);
 
         n1 = n;
         n2 = n;
@@ -110,5 +91,65 @@ class Program {
     static void Main(string[] args) {
         var env = new Env();
         env.Test();
+
+        var data = new xx.Data();
+        var oh = new xx.ObjectHelper();
+        var dw = new xx.DataWriter(data, oh);
+        var L = new xx.List<int>();
+        // todo: 特化 List?
+        dw.Write(L);
+        Console.WriteLine(oh.ToString(data));
+        Console.ReadLine();
+        return;
+
+        long counter = 0;
+        var sw = Stopwatch.StartNew();
+        {
+            counter = 0;
+            sw.Restart();
+            var list = new System.Collections.Generic.List<int>();
+            for (int i = 0; i < 10000000; i++) {
+                list.Add(i);
+                counter += list[0];
+                //list.Clear();
+            }
+            Console.WriteLine(sw.ElapsedMilliseconds);
+            Console.WriteLine(counter);
+
+            counter = 0;
+            sw.Restart();
+            for (int i = 0; i < 50000; i++) {
+                if (list.Find(o => o == i) != -1) {
+                    ++counter;
+                }
+            }
+            Console.WriteLine(sw.ElapsedMilliseconds);
+            Console.WriteLine(counter);
+        }
+
+        {
+            counter = 0;
+            sw.Restart();
+            var list = new xx.List<int>();
+            for (int i = 0; i < 10000000; i++) {
+                list.Add(i);
+                counter += list[0];
+                //list.Clear();
+            }
+            Console.WriteLine(sw.ElapsedMilliseconds);
+            Console.WriteLine(counter);
+
+            counter = 0;
+            sw.Restart();
+            for (int i = 0; i < 50000; i++) {
+                if (list.Find(o => o == i) != -1) {
+                    ++counter;
+                }
+            }
+            Console.WriteLine(sw.ElapsedMilliseconds);
+            Console.WriteLine(counter);
+        }
+
+        Console.ReadLine();
     }
 }
