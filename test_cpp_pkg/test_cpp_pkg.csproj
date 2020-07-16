@@ -42,5 +42,16 @@
     <Compile Include="Classes.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="test.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\test_cpp\PKG_class_lite.cpp">
+      <Link>PKG_class_lite.cpp</Link>
+    </Content>
+    <Content Include="..\test_cpp\PKG_class_lite.h">
+      <Link>PKG_class_lite.h</Link>
+    </Content>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -120,7 +120,7 @@ namespace " + c.Namespace.Replace(".", "::") + @" {");
         else {
             var btn = c._HasBaseType() ? bt._GetTypeDecl_Cpp(templateName) : "xx::Object";
             sb.Append(c._GetDesc()._GetComment_Cpp(4) + @"
-    struct " + c.Name + " : " + btn + (c._HasBaseType() ? "" : ", std::enable_shared_from_this<" + c.Name + @">") + @" {
+    struct " + c.Name + " : " + btn + @" {
         XX_GENCODE_OBJECT_H(" + c.Name + @", " + btn + @")");
         }
 

@@ -23,3 +23,13 @@ class C {
 class D : C {
     string name;
 }
+
+[TypeId(56)]
+class Scene : Node {
+}
+
+[TypeId(78)]
+class Node {
+    Weak<Node> parent;
+    List<Shared<Node>> childs;
+}
