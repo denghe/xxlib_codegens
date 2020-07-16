@@ -96,7 +96,8 @@ class Program {
         var oh = new xx.ObjectHelper();
         var dw = new xx.DataWriter(data, oh);
         var L = new xx.List<int>();
-        // todo: 特化 List?
+        L.Add(1);
+        L.Add(2);
         dw.Write(L);
         Console.WriteLine(oh.ToString(data));
         Console.ReadLine();

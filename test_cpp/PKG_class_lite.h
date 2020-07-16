@@ -3,10 +3,10 @@
 #include "PKG_class_lite.h.inc"  // user create it for extend include files
 namespace PKG {
 	struct PkgGenMd5 {
-		inline static const std::string value = "#*MD5<03b90734596cc8486fd2a848e9c7e13b>*#";
+		inline static const std::string value = "#*MD5<acc13747afaadc5026e4f8f72e303f85>*#";
     };
 	struct PkgGenTypes {
-        static void RegisterTo(xx::ObjectCreators& oc);
+        static void RegisterTo(xx::ObjectHelper& oh);
     };
 
     struct C;
@@ -44,23 +44,33 @@ namespace PKG {
 }
 namespace xx {
 	template<>
-	struct StringFuncs<PKG::A, void> {
-		static void Append(std::string& s, PKG::A const& in);
-		static void AppendCore(std::string& s, PKG::A const& in);
+	struct StringFuncsEx<PKG::A, void> {
+		static void Append(ObjectHelper &oh, PKG::A const& in);
+		static void AppendCore(ObjectHelper &oh, PKG::A const& in);
     };
 	template<>
 	struct DataFuncsEx<PKG::A, void> {
 		static void Write(DataWriterEx& dw, PKG::A const& in);
 		static int Read(DataReaderEx& dr, PKG::A& out);
 	};
+    template<>
+	struct CloneFuncs<PKG::A, void> {
+		static void Clone1(ObjectHelper &oh, PKG::A const& in, PKG::A& out);
+		static void Clone2(ObjectHelper &oh, PKG::A const& in, PKG::A& out);
+	};
 	template<>
-	struct StringFuncs<PKG::B, void> {
-		static void Append(std::string& s, PKG::B const& in);
-		static void AppendCore(std::string& s, PKG::B const& in);
+	struct StringFuncsEx<PKG::B, void> {
+		static void Append(ObjectHelper &oh, PKG::B const& in);
+		static void AppendCore(ObjectHelper &oh, PKG::B const& in);
     };
 	template<>
 	struct DataFuncsEx<PKG::B, void> {
 		static void Write(DataWriterEx& dw, PKG::B const& in);
 		static int Read(DataReaderEx& dr, PKG::B& out);
+	};
+    template<>
+	struct CloneFuncs<PKG::B, void> {
+		static void Clone1(ObjectHelper &oh, PKG::B const& in, PKG::B& out);
+		static void Clone2(ObjectHelper &oh, PKG::B const& in, PKG::B& out);
 	};
 }

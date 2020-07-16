@@ -7,15 +7,25 @@ namespace xx {
     template<> struct TypeId<PKG::Scene> { static const uint16_t value = 56; };
 }
 namespace PKG {
-	void PkgGenTypes::RegisterTo(xx::ObjectCreators& oc) {
-	    oc.Register<PKG::C>(12);
-	    oc.Register<PKG::D>(34);
-	    oc.Register<PKG::Node>(78);
-	    oc.Register<PKG::Scene>(56);
+	void PkgGenTypes::RegisterTo(xx::ObjectHelper& oh) {
+	    oh.Register<PKG::C>();
+	    oh.Register<PKG::D>();
+	    oh.Register<PKG::Node>();
+	    oh.Register<PKG::Scene>();
 	}
 }
 
 namespace xx {
+    void CloneFuncs<PKG::A>::Clone1(xx::ObjectHelper &oh, PKG::A const& in, PKG::A &out) {
+        CloneFuncs<int32_t>::Clone1(oh, in.x, out.x);
+        CloneFuncs<int32_t>::Clone1(oh, in.y, out.y);
+        CloneFuncs<std::shared_ptr<PKG::C>>::Clone1(oh, in.c, out.c);
+    }
+    void CloneFuncs<PKG::A>::Clone2(xx::ObjectHelper &oh, PKG::A const& in, PKG::A &out) {
+        CloneFuncs<int32_t>::Clone2(oh, in.x, out.x);
+        CloneFuncs<int32_t>::Clone2(oh, in.y, out.y);
+        CloneFuncs<std::shared_ptr<PKG::C>>::Clone2(oh, in.c, out.c);
+    }
 	void DataFuncsEx<PKG::A, void>::Write(DataWriterEx& dw, PKG::A const& in) {
         dw.Write(in.x);
         dw.Write(in.y);
@@ -27,19 +37,29 @@ namespace xx {
         if (int r = d.Read(out.c)) return r;
         return 0;
     }
-	void StringFuncs<PKG::A, void>::Append(std::string& s, PKG::A const& in) {
-        s.push_back('{');
-        AppendCore(s, in);
-        s.push_back('}');
+	void StringFuncsEx<PKG::A, void>::Append(ObjectHelper &oh, PKG::A const& in) {
+        oh.s.push_back('{');
+        AppendCore(oh, in);
+        oh.s.push_back('}');
     }
-	void StringFuncs<PKG::A, void>::AppendCore(std::string& s, PKG::A const& in) {
-        auto sizeBak = s.size();
-        if (sizeBak == s.size()) {
-            s.push_back(',');
+	void StringFuncsEx<PKG::A, void>::AppendCore(ObjectHelper &oh, PKG::A const& in) {
+        auto sizeBak = oh.s.size();
+        if (sizeBak == oh.s.size()) {
+            oh.s.push_back(',');
         }
-        xx::Append(s, "\"x\":", in.x); 
-        xx::Append(s, ",\"y\":", in.y);
-        xx::Append(s, ",\"c\":", in.c);
+        xx::AppendEx(oh, "\"x\":", in.x); 
+        xx::AppendEx(oh, ",\"y\":", in.y);
+        xx::AppendEx(oh, ",\"c\":", in.c);
+    }
+    void CloneFuncs<PKG::B>::Clone1(xx::ObjectHelper &oh, PKG::B const& in, PKG::B &out) {
+        CloneFuncs<PKG::A>::Clone1(oh, in, out);
+        CloneFuncs<int32_t>::Clone1(oh, in.z, out.z);
+        CloneFuncs<std::weak_ptr<PKG::C>>::Clone1(oh, in.wc, out.wc);
+    }
+    void CloneFuncs<PKG::B>::Clone2(xx::ObjectHelper &oh, PKG::B const& in, PKG::B &out) {
+        CloneFuncs<PKG::A>::Clone2(oh, in, out);
+        CloneFuncs<int32_t>::Clone2(oh, in.z, out.z);
+        CloneFuncs<std::weak_ptr<PKG::C>>::Clone2(oh, in.wc, out.wc);
     }
 	void DataFuncsEx<PKG::B, void>::Write(DataWriterEx& dw, PKG::B const& in) {
         DataFuncsEx<PKG::A>::Write(dw, in);
@@ -52,19 +72,19 @@ namespace xx {
         if (int r = d.Read(out.wc)) return r;
         return 0;
     }
-	void StringFuncs<PKG::B, void>::Append(std::string& s, PKG::B const& in) {
-        s.push_back('{');
-        AppendCore(s, in);
-        s.push_back('}');
+	void StringFuncsEx<PKG::B, void>::Append(ObjectHelper &oh, PKG::B const& in) {
+        oh.s.push_back('{');
+        AppendCore(oh, in);
+        oh.s.push_back('}');
     }
-	void StringFuncs<PKG::B, void>::AppendCore(std::string& s, PKG::B const& in) {
-        auto sizeBak = s.size();
-        StringFuncs<PKG::A>::AppendCore(s, in);
-        if (sizeBak == s.size()) {
-            s.push_back(',');
+	void StringFuncsEx<PKG::B, void>::AppendCore(ObjectHelper &oh, PKG::B const& in) {
+        auto sizeBak = oh.s.size();
+        StringFuncsEx<PKG::A>::AppendCore(oh, in);
+        if (sizeBak == oh.s.size()) {
+            oh.s.push_back(',');
         }
-        xx::Append(s, "\"z\":", in.z); 
-        xx::Append(s, ",\"wc\":", in.wc);
+        xx::AppendEx(oh, "\"z\":", in.z); 
+        xx::AppendEx(oh, ",\"wc\":", in.wc);
     }
 }
 namespace PKG {
@@ -94,6 +114,16 @@ namespace PKG {
         std::swap(this->b, o.b);
         return *this;
     }
+    void C::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        auto&& o = xx::As<PKG::C>(tar);
+        xx::CloneFuncs<PKG::A>::Clone1(oh, this->a, o->a);
+        xx::CloneFuncs<PKG::B>::Clone1(oh, this->b, o->b);
+    }
+    void C::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        auto&& o = xx::As<PKG::C>(tar);
+        xx::CloneFuncs<PKG::A>::Clone2(oh, this->a, o->a);
+        xx::CloneFuncs<PKG::B>::Clone2(oh, this->b, o->b);
+    }
     uint16_t C::GetTypeId() const {
         return xx::TypeId_v<PKG::C>;
     }
@@ -106,22 +136,22 @@ namespace PKG {
         if (int r = dr.Read(this->b)) return r;
         return 0;
     }
-    void C::ToString(std::string& s) const {
-        if (this->toStringFlag) {
-        	xx::Append(s, "{}");
+    void C::ToString(xx::ObjectHelper &oh) const {
+        auto&& iter = oh.objOffsets.find((void*)this);
+        if (iter != oh.objOffsets.end()) {
+        	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            ((C*)this)->toStringFlag = true;
+            oh.objOffsets[(void*)this] = oh.s.size();
         }
-        xx::Append(s, "{\"#\":", GetTypeId());
-        ToStringCore(s);
-        s.push_back('}');
-        ((C*)this)->toStringFlag = false;
+        xx::AppendEx(oh, "{\"#\":", GetTypeId());
+        ToStringCore(oh);
+        oh.s.push_back('}');
     }
-    void C::ToStringCore(std::string& s) const {
-        xx::Append(s, ",\"a\":", this->a);
-        xx::Append(s, ",\"b\":", this->b);
+    void C::ToStringCore(xx::ObjectHelper &oh) const {
+        xx::AppendEx(oh, ",\"a\":", this->a);
+        xx::AppendEx(oh, ",\"b\":", this->b);
     }
     Node::Node(Node&& o) noexcept {
         this->operator=(std::move(o));
@@ -130,6 +160,16 @@ namespace PKG {
         std::swap(this->parent, o.parent);
         std::swap(this->childs, o.childs);
         return *this;
+    }
+    void Node::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        auto&& o = xx::As<PKG::Node>(tar);
+        xx::CloneFuncs<std::weak_ptr<PKG::Node>>::Clone1(oh, this->parent, o->parent);
+        xx::CloneFuncs<std::vector<std::shared_ptr<PKG::Node>>>::Clone1(oh, this->childs, o->childs);
+    }
+    void Node::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        auto&& o = xx::As<PKG::Node>(tar);
+        xx::CloneFuncs<std::weak_ptr<PKG::Node>>::Clone2(oh, this->parent, o->parent);
+        xx::CloneFuncs<std::vector<std::shared_ptr<PKG::Node>>>::Clone2(oh, this->childs, o->childs);
     }
     uint16_t Node::GetTypeId() const {
         return xx::TypeId_v<PKG::Node>;
@@ -143,30 +183,40 @@ namespace PKG {
         if (int r = dr.Read(this->childs)) return r;
         return 0;
     }
-    void Node::ToString(std::string& s) const {
-        if (this->toStringFlag) {
-        	xx::Append(s, "{}");
+    void Node::ToString(xx::ObjectHelper &oh) const {
+        auto&& iter = oh.objOffsets.find((void*)this);
+        if (iter != oh.objOffsets.end()) {
+        	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            ((Node*)this)->toStringFlag = true;
+            oh.objOffsets[(void*)this] = oh.s.size();
         }
-        xx::Append(s, "{\"#\":", GetTypeId());
-        ToStringCore(s);
-        s.push_back('}');
-        ((Node*)this)->toStringFlag = false;
+        xx::AppendEx(oh, "{\"#\":", GetTypeId());
+        ToStringCore(oh);
+        oh.s.push_back('}');
     }
-    void Node::ToStringCore(std::string& s) const {
-        xx::Append(s, ",\"parent\":", this->parent);
-        xx::Append(s, ",\"childs\":", this->childs);
+    void Node::ToStringCore(xx::ObjectHelper &oh) const {
+        xx::AppendEx(oh, ",\"parent\":", this->parent);
+        xx::AppendEx(oh, ",\"childs\":", this->childs);
     }
     D::D(D&& o) noexcept {
         this->operator=(std::move(o));
     }
     D& D::operator=(D&& o) noexcept {
-        this->PKG::C::operator=(std::move(o));
+        this->BaseType::operator=(std::move(o));
         std::swap(this->name, o.name);
         return *this;
+    }
+    void D::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone1(oh, tar);
+        auto&& o = xx::As<PKG::D>(tar);
+        xx::CloneFuncs<std::string>::Clone1(oh, this->name, o->name);
+    }
+    void D::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone2(oh, tar);
+        auto&& o = xx::As<PKG::D>(tar);
+        xx::CloneFuncs<std::string>::Clone2(oh, this->name, o->name);
     }
     uint16_t D::GetTypeId() const {
         return xx::TypeId_v<PKG::D>;
@@ -180,29 +230,37 @@ namespace PKG {
         if (int r = dr.Read(this->name)) return r;
         return 0;
     }
-    void D::ToString(std::string& s) const {
-        if (this->toStringFlag) {
-        	xx::Append(s, "{}");
+    void D::ToString(xx::ObjectHelper &oh) const {
+        auto&& iter = oh.objOffsets.find((void*)this);
+        if (iter != oh.objOffsets.end()) {
+        	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            ((D*)this)->toStringFlag = true;
+            oh.objOffsets[(void*)this] = oh.s.size();
         }
-        xx::Append(s, "{\"#\":", GetTypeId());
-        ToStringCore(s);
-        s.push_back('}');
-        ((D*)this)->toStringFlag = false;
+        xx::AppendEx(oh, "{\"#\":", GetTypeId());
+        ToStringCore(oh);
+        oh.s.push_back('}');
     }
-    void D::ToStringCore(std::string& s) const {
-        this->BaseType::ToStringCore(s);
-        xx::Append(s, ",\"name\":", this->name);
+    void D::ToStringCore(xx::ObjectHelper &oh) const {
+        this->BaseType::ToStringCore(oh);
+        xx::AppendEx(oh, ",\"name\":", this->name);
     }
     Scene::Scene(Scene&& o) noexcept {
         this->operator=(std::move(o));
     }
     Scene& Scene::operator=(Scene&& o) noexcept {
-        this->PKG::Node::operator=(std::move(o));
+        this->BaseType::operator=(std::move(o));
         return *this;
+    }
+    void Scene::Clone1(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone1(oh, tar);
+        auto&& o = xx::As<PKG::Scene>(tar);
+    }
+    void Scene::Clone2(xx::ObjectHelper &oh, std::shared_ptr<Object> const &tar) const {
+        this->BaseType::Clone2(oh, tar);
+        auto&& o = xx::As<PKG::Scene>(tar);
     }
     uint16_t Scene::GetTypeId() const {
         return xx::TypeId_v<PKG::Scene>;
@@ -214,20 +272,20 @@ namespace PKG {
         if (int r = this->BaseType::Deserialize(dr)) return r;
         return 0;
     }
-    void Scene::ToString(std::string& s) const {
-        if (this->toStringFlag) {
-        	xx::Append(s, "{}");
+    void Scene::ToString(xx::ObjectHelper &oh) const {
+        auto&& iter = oh.objOffsets.find((void*)this);
+        if (iter != oh.objOffsets.end()) {
+        	xx::AppendEx(oh, iter->second);
         	return;
         }
         else {
-            ((Scene*)this)->toStringFlag = true;
+            oh.objOffsets[(void*)this] = oh.s.size();
         }
-        xx::Append(s, "{\"#\":", GetTypeId());
-        ToStringCore(s);
-        s.push_back('}');
-        ((Scene*)this)->toStringFlag = false;
+        xx::AppendEx(oh, "{\"#\":", GetTypeId());
+        ToStringCore(oh);
+        oh.s.push_back('}');
     }
-    void Scene::ToStringCore(std::string& s) const {
-        this->BaseType::ToStringCore(s);
+    void Scene::ToStringCore(xx::ObjectHelper &oh) const {
+        this->BaseType::ToStringCore(oh);
     }
 }

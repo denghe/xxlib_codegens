@@ -73,6 +73,7 @@ public static class Program
         var fileNames = new HashSet<string>();
         foreach (var path in inPaths)
         {
+            Console.WriteLine("正在扫描目录: " + path);
             if (Directory.Exists(path))
             {
                 foreach (var f in Directory.GetFiles(path, "*.cs"))

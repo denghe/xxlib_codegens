@@ -7,8 +7,8 @@ Db3ToCSharpTemplate
 PackageGenerator
 	可将以 c# 语法书写的 结构描述文本 转为目标语言代码生成物, 可用于网络序列化收发，数据库查询等
 	
-生成用批处理参考: gen_test_cpp_pkg.bat
-测试项目：test_cpp*
+生成用批处理参考: gen_test_cpp.bat
+测试项目：test_*
 
 
 
