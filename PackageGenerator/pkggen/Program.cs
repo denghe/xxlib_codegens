@@ -174,9 +174,9 @@ public static class Program
         }
         if ((gt & (int)GenTypes.CSharpClass) > 0)
         {
-            if (!GenTypeId.Gen(asm, outPath, rootNamespace)) {
-                TipsAndExit("生成停止：" + rootNamespace + "_TypeIdMappings.cs 已生成. 请将其放入 源码文件或目录清单 并再次生成. ");
-            }
+            //if (!GenTypeId.Gen(asm, outPath, rootNamespace)) {
+            //    TipsAndExit("生成停止：" + rootNamespace + "_TypeIdMappings.cs 已生成. 请将其放入 源码文件或目录清单 并再次生成. ");
+            //}
             GenCS_Class.Gen(asm, outPath, rootNamespace);
         }
         if ((gt & (int)GenTypes.CSharpMySql) > 0)

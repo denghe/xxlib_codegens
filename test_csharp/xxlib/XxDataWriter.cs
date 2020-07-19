@@ -307,15 +307,6 @@ namespace xx {
             if (v == null) throw new Exception("v is null");
             v.Serialize(this);
         }
-        //public void Write(xx.Optional<List<T>> v) {
-        //    if(v.HasValue) {
-        //        Write((byte)1);
-        //        Write(v.Value);
-        //    }
-        //    else {
-        //        Write((byte)0);
-        //    }
-        //}
 
         public void Write<T>(T v) where T : IObject {
             if (v == null) {
@@ -327,8 +318,8 @@ namespace xx {
                 Write(v.GetTypeId());
                 if (oh.objOffsets != null) {
                     var rtv = oh.objOffsets.Add(v, (uint)(len - oh.bak));          // 试将 v 和 相对offset 放入字典, 得到下标和是否成功
-                    Write(oh.objOffsets.ValueAt(rtv.index));                            // 取 offset ( 不管是否成功 )
-                    if (!rtv.success) return;                                           // 如果首次出现就序列化类本体
+                    Write(oh.objOffsets.ValueAt(rtv.index));                       // 取 offset ( 不管是否成功 )
+                    if (!rtv.success) return;                                      // 如果首次出现就序列化类本体
                 }
                 v.Serialize(this);
             }

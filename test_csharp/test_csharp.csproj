@@ -42,6 +42,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Classes.cs" />
+    <Compile Include="PKG_class.cs" />
+    <None Include="bak\Program - Copy.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="xxlib\XxData.cs" />
@@ -49,6 +52,7 @@
     <Compile Include="xxlib\XxDataWriter.cs" />
     <Compile Include="xxlib\XxDict.cs" />
     <Compile Include="xxlib\XxList.cs" />
+    <Compile Include="xxlib\XxChrono.cs" />
     <Compile Include="xxlib\XxObject.cs" />
     <Compile Include="xxlib\XxObjectHelper.cs" />
     <None Include="bak\XxList.cs" />
@@ -56,5 +60,6 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

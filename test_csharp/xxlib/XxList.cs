@@ -563,21 +563,20 @@ namespace xx {
         public override void From(DataReader dr, List<T> vs) {
             int len = dr.ReadLength();
             vs.Clear();
-            vs.Clear();
             if (len == 0) return;
 
             if (typeof(T).IsValueType) {
                 for (int i = 0; i < len; i++) {
                     var tmp = (IObject)default(T);
                     tmp.Deserialize(dr);
-                    vs[i] = (T)tmp;
+                    vs.Add((T)tmp);
                 }
             }
             else {
                 for (int i = 0; i < len; i++) {
                     IObject tmp = null;
                     dr.Read(ref tmp);
-                    vs[i] = (T)tmp;
+                    vs.Add((T)tmp);
                 }
             }
         }
@@ -614,12 +613,12 @@ namespace xx {
         public override void From(DataReader dr, List<T> vs) {
             int len = dr.ReadLength();
             vs.Clear();
-            vs.Clear();
             if (len == 0) return;
 
             for (int i = 0; i < len; i++) {
                 Object tmp = null;
                 dr.Read(ref tmp);
+                vs.Add(default(T));
                 var v = (IWeak)vs[i];
                 v.Reset(tmp);
                 vs[i] = (T)v;

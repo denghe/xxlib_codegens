@@ -24,9 +24,7 @@ namespace xx {
 
         // 根据 typeId 来创建对象
         public IObject CreateByTypeId(ushort typeId) {
-            var f = createFuncs[typeId];
-            if (f != null) return f();
-            return null;
+            return createFuncs[typeId]();
         }
 
         // 通过 obj 定位 offset
@@ -41,7 +39,7 @@ namespace xx {
             dw.WriteOnce(v);
         }
 
-        // 从 data 读出一个东西
+        // 从 data 读出一个东西. 注意: 会自动 Hold 根
         public void ReadFrom<T>(Data data, ref T v) where T : IObject {
             var dr = new DataReader(data, this);
             dr.ReadOnce(ref v);

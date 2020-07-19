@@ -1,0 +1,1 @@
+PackageGenerator\pkggen\bin\x64\Debug\pkggen.exe 16 PKG test_csharp\ test_csharp\Classes.cs

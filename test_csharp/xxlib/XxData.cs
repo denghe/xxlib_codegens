@@ -1,63 +1,102 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace xx {
     /// <summary>
     /// 基础数据容器. 数组 + 数据长度. 序列化时当作值类型处理( 直接序列化, 不探索引用关系 )
     /// </summary>
     public class Data : IObject {
-        public byte[] buf = new byte[256];
-        public int len;
-        public int cap { get { return buf.Length; } }
+        /// <summary>
+        /// 指向数据容器
+        /// </summary>
+        public byte[] buf;
 
-        public void Ensure(int len) {
-            if (this.len + len > cap) {
-                Reserve(this.len + len);
+        /// <summary>
+        /// 数据容器中的数据长度
+        /// </summary>
+        public int len;
+
+        /// <summary>
+        /// 数据容器长度上限
+        /// </summary>
+        public int cap {
+            get {
+                return buf.Length;
             }
         }
 
+        /// <summary>
+        /// 可输入一串数字来初始化 buf 的内容 以方便临时调试
+        /// </summary>
+        public Data(params byte[] args) {
+            if (args != null) {
+                buf = args;
+            }
+            else {
+                buf = new byte[0];
+            }
+        }
+
+        /// <summary>
+        /// 预申请 buf 空间
+        /// </summary>
         public void Reserve(int capacity) {
             if (capacity <= cap) return;
-            Array.Resize(ref this.buf, (int)Round2n((uint)(capacity * 2)));
+            Array.Resize(ref this.buf, (int)Round2n((uint)(capacity)));
         }
 
+        /// <summary>
+        /// 在当前数据已有长度的基础上确保至少还有 len 字节可用
+        /// </summary>
+        public void Ensure(int len) {
+            Reserve(this.len + len);
+        }
+
+        /// <summary>
+        /// 直接设置数据长
+        /// </summary>
         public void Resize(int len) {
-            if (len == this.len) return;
-            else if (len < this.len) {
-                Array.Clear(buf, len, this.len - len);
-            }
-            else // len > dataLen
-            {
-                Reserve(len);
-            }
+            Reserve(len);
             this.len = len;
+        }
+
+        /// <summary>
+        /// 清理数据
+        /// </summary>
+        public void Clear() {
+            len = 0;
         }
 
         /// <summary>
         /// 直接追加写入一段2进制数据
         /// </summary>
-        public void WriteBuf(byte[] buf, int offset, int dataLen) {
-            this.Reserve(dataLen + this.len);
-            Buffer.BlockCopy(buf, offset, this.buf, this.len, dataLen);
-            this.len += dataLen;
+        public void WriteBuf(byte[] buf, int offset, int len) {
+            Reserve(len + this.len);
+            Buffer.BlockCopy(buf, offset, this.buf, this.len, len);
+            this.len += len;
         }
 
         /// <summary>
         /// 直接追加写入一段2进制数据之指针版
         /// </summary>
         public void WriteBuf(IntPtr bufPtr, int len) {
-            this.Reserve(this.len + len);
-            Marshal.Copy(bufPtr, this.buf, this.len, len);
+            Reserve(this.len + len);
+            Marshal.Copy(bufPtr, buf, this.len, len);
             this.len += len;
         }
 
+
+        /// <summary>
+        /// 返回 typeId
+        /// </summary>
         public ushort GetTypeId() {
             return TypeId<Data>.value;
         }
 
+        /// <summary>
+        /// 序列化. 先写入长度，再写入数据
+        /// </summary>
         public void Serialize(DataWriter dw) {
-            var len = this.len;
             dw.WriteLength(len);
             if (len == 0) return;
             dw.Ensure(len);
@@ -65,15 +104,20 @@ namespace xx {
             dw.len += len;
         }
 
+        /// <summary>
+        /// 反序列化
+        /// </summary>
         public void Deserialize(DataReader dr) {
             int len = dr.ReadLength();
             Resize(len);
-            dr.offset = 0;
             if (len == 0) return;
             Buffer.BlockCopy(dr.buf, dr.offset, buf, 0, len);
             dr.offset += len;
         }
 
+        /// <summary>
+        /// 配合输出 json 长相
+        /// </summary>
         public void ToString(ObjectHelper oh) {
             var sb = oh.sb;
             sb.Append('[');
@@ -126,65 +170,24 @@ namespace xx {
             return rtv << 1;
         }
 
-        public static void DumpAscII(ref StringBuilder s, byte[] buf, int offset, int len) {
-            for (int i = offset; i < offset + len; ++i) {
-                byte c = buf[i];
-                if (c < 32 || c > 126)
-                    s.Append('.');
-                else
-                    s.Append((char)c);
-            }
-        }
+    }
 
-        // write buf's binary dump text to s
-        public static void Dump(ref StringBuilder s, byte[] buf, int len = 0) {
-            if (buf == null || buf.Length == 0)
-                return;
-            if (len == 0)
-                len = buf.Length;
-            s.Append("--------  0  1  2  3 | 4  5  6  7 | 8  9  A  B | C  D  E  F");
-            s.Append("   dataLen = " + len);
-            int i = 0;
-            for (; i < len; ++i) {
-                if ((i % 16) == 0) {
-                    if (i > 0) {           // refput ascii to the end of the line
-                        s.Append("  ");
-                        DumpAscII(ref s, buf, i - 16, 16);
-                    }
-                    s.Append('\n');
-                    s.Append(i.ToString("x8"));
-                    s.Append("  ");
-                }
-                else if ((i > 0 && (i % 4 == 0))) {
-                    s.Append("  ");
-                }
-                else
-                    s.Append(' ');
-                s.Append(BitConverter.ToString(buf, i, 1));
-            }
-            int left = i % 16;
-            if (left == 0) {
-                left = 16;
-            }
-            if (left > 0) {
-                len = len + 16 - left;
-                for (; i < len; ++i) {
-                    if (i > 0 && (i % 4 == 0))
-                        s.Append("  ");
-                    else
-                        s.Append(' ');
-                    s.Append("  ");
-                }
-                s.Append("  ");
-                DumpAscII(ref s, buf, i - 16, left);
-            }
-            s.Append('\n');
-        }
-
-        public static string Dump(byte[] buf, int len = 0) {
-            var sb = new StringBuilder();
-            Dump(ref sb, buf, len);
-            return sb.ToString();
-        }
+    /// <summary>
+    /// 用于浮点到各长度整型的快速转换 
+    /// </summary>
+    [StructLayout(LayoutKind.Explicit, Size = 8, CharSet = CharSet.Ansi)]
+    public struct FloatingInteger {
+        [FieldOffset(0)] public double d;
+        [FieldOffset(0)] public ulong ul;
+        [FieldOffset(0)] public float f;
+        [FieldOffset(0)] public uint u;
+        [FieldOffset(0)] public byte b0;
+        [FieldOffset(1)] public byte b1;
+        [FieldOffset(2)] public byte b2;
+        [FieldOffset(3)] public byte b3;
+        [FieldOffset(4)] public byte b4;
+        [FieldOffset(5)] public byte b5;
+        [FieldOffset(6)] public byte b6;
+        [FieldOffset(7)] public byte b7;
     }
 }

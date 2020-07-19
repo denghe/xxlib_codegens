@@ -299,6 +299,10 @@ namespace xx {
         //}
         #endregion
 
+        public void Read<T>(ref List<T> v) {
+            v.Deserialize(this);
+        }
+
         public void Read<T>(ref T v) where T : IObject {
             var typeId = (ushort)0;
             Read(ref typeId);
@@ -306,29 +310,25 @@ namespace xx {
                 v = default(T);
                 return;
             }
-            if (typeId == 1) throw new Exception("Read<T> does not support string type");
-            if (oh.offsetObjs != null) {
-                uint ptr_offset = 0, bb_offset_bak = (uint)(offset - oh.bak);
-                Read(ref ptr_offset);
-                if (ptr_offset == bb_offset_bak) {
-                    v = (T)oh.CreateByTypeId(typeId);
-                    if (v == null) throw new Exception("not find typeid: " + typeId);
+            uint ptr_offset = 0, bb_offset_bak = (uint)(offset - oh.bak);
+            Read(ref ptr_offset);
+            if (ptr_offset == bb_offset_bak) {
+                v = (T)oh.CreateByTypeId(typeId);
+                if (v == null) throw new Exception("create type failed. typeId = " + typeId);
 
-                    oh.offsetObjs.Add(ptr_offset, v);
-                    v.Deserialize(this);
+                // 自动加持第一个
+                if (oh.offsetObjs.Count == 0) {
+                    ((Object)(object)v).Hold();
                 }
-                else {
-                    int idx = oh.offsetObjs.Find(ptr_offset);
-                    if (idx == -1) throw new Exception("ptr_offset is not found");
-                    v = (T)oh.offsetObjs.ValueAt(idx);
-
-                    if (v == null) throw new Exception("idxStore not found: " + idx);
-                }
+                oh.offsetObjs.Add(ptr_offset, v);
+                v.Deserialize(this);
             }
             else {
-                v = (T)oh.CreateByTypeId(typeId);
-                if (v == null) throw new Exception("not find typeid: " + typeId);
-                v.Deserialize(this);
+                int idx = oh.offsetObjs.Find(ptr_offset);
+                if (idx == -1) throw new Exception("ptr_offset is not found");
+                v = (T)oh.offsetObjs.ValueAt(idx);
+
+                if (v == null) throw new Exception("idxStore not found: " + idx);
             }
         }
         public void ReadOnce<T>(ref T v) where T : IObject {

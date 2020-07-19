@@ -592,7 +592,7 @@ public static class TypeHelpers {
                     return "xx.Weak<" + _GetTypeDecl_Csharp(t.GenericTypeArguments[0]) + ">";
                 }
                 if (t.Name == "Shared`1") {
-                    return "xx.Shared<" + _GetTypeDecl_Csharp(t.GenericTypeArguments[0]) + ">";
+                    return _GetTypeDecl_Csharp(t.GenericTypeArguments[0]);
                 }
                 else if (t.Name == "List`1") {
                     return "xx.List<" + _GetTypeDecl_Csharp(t.GenericTypeArguments[0]) + ">";
@@ -649,6 +649,96 @@ public static class TypeHelpers {
             //throw new Exception("unhandled data type");
         }
     }
+
+    /// <summary>
+    /// 获取 C# 的类型声明串( 显示用 )
+    /// </summary>
+    public static string _GetTypeDecl_CsharpForDisplayCppType(this Type t) {
+        if (t._IsNullable()) {
+            return t.GenericTypeArguments[0]._GetTypeDecl_CsharpForDisplayCppType() + "?";
+        }
+        if (t.IsArray) {
+            // todo: 如果是 byte[] 则用于表达 xx.Data 对象
+            throw new NotSupportedException();
+            //return _GetCSharpTypeDecl(t.GetElementType()) + "[]";
+        }
+        else if (t._IsTuple()) {
+            string rtv = "std::tuple<";
+            for (int i = 0; i < t.GenericTypeArguments.Length; ++i) {
+                if (i > 0)
+                    rtv += ", ";
+                rtv += _GetTypeDecl_CsharpForDisplayCppType(t.GenericTypeArguments[i]);
+            }
+            rtv += ">";
+            return rtv;
+        }
+        else if (t.IsEnum) {
+            return t.FullName;
+        }
+        else {
+            if (t.Namespace == nameof(TemplateLibrary)) {
+                if (t.Name == "Weak`1") {
+                    return "std::weak_ptr<" + _GetTypeDecl_CsharpForDisplayCppType(t.GenericTypeArguments[0]) + ">";
+                }
+                if (t.Name == "Shared`1") {
+                    return "std::shared_ptr<" + _GetTypeDecl_CsharpForDisplayCppType(t.GenericTypeArguments[0]) + ">";
+                }
+                else if (t.Name == "List`1") {
+                    return "std::vector<" + _GetTypeDecl_CsharpForDisplayCppType(t.GenericTypeArguments[0]) + ">";
+                }
+                //else if (t.Name == "DateTime") {
+                //    return "DateTime";
+                //}
+                //else if (t.Name == "Data") {
+                //    return "xx::Data";
+                //}
+            }
+            else if (t.Namespace == nameof(System)) {
+                switch (t.Name) {
+                    case "Object":
+                        return "xx.Object";
+                    case "Void":
+                        return "void";
+                    case "Byte":
+                        return "byte";
+                    case "UInt8":
+                        return "byte";
+                    case "UInt16":
+                        return "ushort";
+                    case "UInt32":
+                        return "uint";
+                    case "UInt64":
+                        return "ulong";
+                    case "SByte":
+                        return "sbyte";
+                    case "Int8":
+                        return "sbyte";
+                    case "Int16":
+                        return "short";
+                    case "Int32":
+                        return "int";
+                    case "Int64":
+                        return "long";
+                    case "Double":
+                        return "double";
+                    case "Float":
+                        return "float";
+                    case "Single":
+                        return "float";
+                    case "Boolean":
+                        return "bool";
+                    case "Bool":
+                        return "bool";
+                    case "String":
+                        return "string";
+                }
+            }
+
+            return t.FullName;
+            //throw new Exception("unhandled data type");
+        }
+    }
+
 
 
     /// <summary>
