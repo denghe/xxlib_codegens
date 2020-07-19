@@ -2,7 +2,7 @@
 namespace PKG {
     #region GenMD5, GenTypes.RegisterTo
     public static class PkgGenMd5 {
-        public const string value = "#*MD5<f626e32063a5ce4e89d989e640269d21>*#"; 
+        public const string value = "#*MD5<6849722e1e7a216532f3fba66d132571>*#"; 
     }
     public static class PkgGenTypes {
         public static void RegisterTo(xx.ObjectHelper oh) {
@@ -52,7 +52,8 @@ namespace PKG {
         public override void ToString(xx.ObjectHelper oh) {
             base.ToString(oh);
         }
-        public override void ToStringCore(xx.ObjectHelper oh) {var s = oh.sb;
+        public override void ToStringCore(xx.ObjectHelper oh) {
+            var s = oh.sb;
             s.Append(",\"parent\":");
             if (parent == null) s.Append("null");
             else {
@@ -61,8 +62,11 @@ namespace PKG {
             s.Append(",\"childs\":");
             childs.ToString(oh);
         }
+        public override void Destruct() {
+            childs.Destruct();
+        }
         public override string ToString() {
-            return "";
+            throw new Exception("can't use this func tostring. miss ObjectHelper");
         }
         #endregion
     }
@@ -85,8 +89,10 @@ namespace PKG {
         public override void ToStringCore(xx.ObjectHelper oh) {
             base.ToStringCore(oh);
         }
+        public override void Destruct() {
+        }
         public override string ToString() {
-            return "";
+            throw new Exception("can't use this func tostring. miss ObjectHelper");
         }
         #endregion
     }

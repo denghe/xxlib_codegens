@@ -329,8 +329,29 @@ namespace " + c.Namespace + @" {");
             }
             sb.Append(@"
         }
+        public" + (c.IsValueType ? "" : " override") + @" void Destruct() {");
+            foreach (var f in fs) {
+                var ft = f.FieldType;
+                // 外部类型是否需要调用 Destruct, 值得商榷
+                if (ft._IsExternal() && !ft._GetExternalSerializable()) continue;
+                if (ft._IsShared()) {
+                    sb.Append(@"
+            " + f.Name + @" == null;");
+                }
+                else if (ft._IsList()) {
+                    sb.Append(@"
+            " + f.Name + @".Destruct();");
+                }
+                else if (ft._IsUserClass()) {
+                    throw new Exception("miss Shared<> Weak<>");
+                }
+                else {
+                }
+            }
+            sb.Append(@"
+        }
         public override string ToString() {
-            return """";
+            throw new Exception(""can't use this func tostring. miss ObjectHelper"");
         }
         #endregion");
             // class /

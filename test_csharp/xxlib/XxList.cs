@@ -37,11 +37,9 @@ namespace xx {
         }
 
         public new void Clear() {
-            for (int i = 0; i < Count; i++) {
-                if (base[i] is Object o) {
-                    o.Unhold();
-                }
-            }
+            Destruct();
+        }
+        public void BaseClear() {
             base.Clear();
         }
 
@@ -70,6 +68,9 @@ namespace xx {
         /****************************************************************/
         // IObject 相关适配
         /****************************************************************/
+        public ushort GetTypeId() {
+            throw new Exception();
+        }
 
         public void Deserialize(DataReader dr) {
             ListIObjectImpl<T>.instance.From(dr, this);
@@ -87,8 +88,8 @@ namespace xx {
             throw new NotImplementedException();
         }
 
-        public ushort GetTypeId() {
-            throw new NotImplementedException();
+        public void Destruct() {
+            ListIObjectImpl<T>.instance.Destruct(this);
         }
     }
 
@@ -110,6 +111,9 @@ namespace xx {
             else {
                 sb.Append(']');
             }
+        }
+        public virtual void Destruct(List<T> vs) {
+            vs.BaseClear();
         }
 
         public static ListIObjectImpl<T> instance;
@@ -598,6 +602,24 @@ namespace xx {
             else {
                 sb.Append(']');
             }
+        }
+
+        public override void Destruct(List<T> vs) {
+            var vsLen = vs.Count;
+            if (vsLen == 0) return;
+            if (typeof(T).IsValueType) {
+                for (int i = 0; i < vsLen; i++) {
+                    ((IObject)vs[i]).Destruct();
+                }
+            }
+            else {
+                for (int i = 0; i < vsLen; i++) {
+                    if (vs[i] is Object o) {
+                        o.Unhold();
+                    }
+                }
+            }
+            vs.BaseClear();
         }
     }
     public partial class ListIObjectImpl_Weak<T> : ListIObjectImpl<T> {

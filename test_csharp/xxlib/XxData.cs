@@ -136,6 +136,9 @@ namespace xx {
         public void ToStringCore(ObjectHelper oh) {
         }
 
+        public void Destruct() {
+        }
+
         /// <summary>
         /// 统计有多少个 1
         /// </summary>

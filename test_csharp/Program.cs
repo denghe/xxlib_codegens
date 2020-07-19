@@ -42,6 +42,17 @@ public class Test {
 
         oh.ReadFrom(data, ref __n2);
         Console.WriteLine(oh.ToString(n2));
+
+        Console.WriteLine(n.useCount);
+        Console.WriteLine(n2.useCount);
+        n2 = n;
+        Console.WriteLine(n2.useCount);
+        var c = n.childs[0];
+        Console.WriteLine(c.useCount);
+        n = null;
+        Console.WriteLine(c.useCount);
+        n2 = null;
+        Console.WriteLine(c.useCount);
     }
 }
 

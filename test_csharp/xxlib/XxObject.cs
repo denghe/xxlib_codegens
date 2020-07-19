@@ -1,21 +1,5 @@
 ﻿using System;
 
-/*
-    // shared_ptr 变量的写法示例
-
-    #region std::shared_ptr<Node> n
-    PKG.Node __n;
-    public PKG.Node n {
-        get { return __n; }
-        set {
-            if (__n != null) __n.Unhold();
-            if (value != null) value.Hold();
-            __n = value;
-        }
-    }
-    #endregion 
-*/
-
 namespace xx {
     /// <summary>
     /// 序列化基础接口. 主要为兼容 struct
@@ -30,6 +14,8 @@ namespace xx {
         // ToString 相关
         void ToString(ObjectHelper oh);
         void ToStringCore(ObjectHelper oh);
+
+        void Destruct();
     }
 
     /// <summary>
@@ -43,6 +29,9 @@ namespace xx {
         }
         public void Unhold() {
             --_useCount;
+            if(_useCount == 0) {
+                Destruct();
+            }
         }
 
         public virtual ushort GetTypeId() { return 0; }
@@ -65,6 +54,8 @@ namespace xx {
             sb.Append('}');
         }
         public virtual void ToStringCore(ObjectHelper oh) { }
+
+        public virtual void Destruct() { }
 
         // 作为接收变量默认值比较方便
         public static readonly Object instance = new Object();
@@ -111,6 +102,21 @@ namespace xx {
         }
     }
 
+    // 可作为类的临时容器
+    public struct Shared<T> where T : Object {
+        T __t;
+        public T value {
+            get { return __t; }
+            set {
+                if (__t != null) __t.Unhold();
+                if (value != null) value.Hold();
+                __t = value;
+            }
+        }
+        public void Init(T v) {
+            __t = v;
+        }
+    }
 
     /// <summary>
     /// 存放类型到 typeid 的映射 for 序列化
