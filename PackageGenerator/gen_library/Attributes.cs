@@ -26,6 +26,11 @@ namespace TemplateLibrary {
     /// </summary>
     public class Shared<T> { }
 
+    /// <summary>
+    /// 对应 c++ std::map, c# 暂定对应 Dict( 应该对应有序版字典 ). lua table( 情况未知 )
+    /// </summary>
+    public class Dict<K, V> { }
+
 
 
     /// <summary>

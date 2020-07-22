@@ -597,6 +597,9 @@ public static class TypeHelpers {
                 else if (t.Name == "List`1") {
                     return "xx.List<" + _GetTypeDecl_Csharp(t.GenericTypeArguments[0]) + ">";
                 }
+                else if(t.Name == "Dict`2") {
+                    return "xx.Dict<" + @"<" + t.GenericTypeArguments[0]._GetTypeDecl_Csharp() + ", " + t.GenericTypeArguments[1]._GetTypeDecl_Csharp() + ">";
+                }
                 else if (t.Name == "DateTime") {
                     return "DateTime";
                 }
@@ -778,6 +781,9 @@ public static class TypeHelpers {
                     case "List`1": {
                             var ct = t.GenericTypeArguments[0];
                             return "std::vector" + @"<" + ct._GetTypeDecl_Cpp(templateName) + ">";
+                        }
+                    case "Dict`2": {
+                            return "std::map" + @"<" + t.GenericTypeArguments[0]._GetTypeDecl_Cpp(templateName) + ", "+ t.GenericTypeArguments[1]._GetTypeDecl_Cpp(templateName) + ">";
                         }
                     case "Data":
                         return "xx::Data";
