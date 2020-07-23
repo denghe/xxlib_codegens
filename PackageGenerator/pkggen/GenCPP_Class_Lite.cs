@@ -28,10 +28,41 @@ namespace " + templateName + @" {
 ");
     }
 
-    static void GenH_Tail(this StringBuilder sb, string templateName) {
-        sb.Append(@"
+
+    static void GenH_ClassPredefine(this StringBuilder sb, List<Type> cs, string templateName, Assembly asm) {
+        for (int i = 0; i < cs.Count; ++i) {
+            var c = cs[i];
+            var o = asm.CreateInstance(c.FullName);
+
+            if (c.Namespace != null && (i == 0 || (i > 0 && cs[i - 1].Namespace != c.Namespace))) // namespace 去重
+            {
+                sb.Append(@"
+namespace " + c.Namespace.Replace(".", "::") + @" {");
+            }
+
+            if (c._IsUserStruct()) continue;
+            sb.Append(@"
+    struct " + c.Name + ";");
+
+            if (c.Namespace != null && ((i < cs.Count - 1 && cs[i + 1].Namespace != c.Namespace) || i == cs.Count - 1)) {
+                sb.Append(@"
 }");
+            }
+        }
+
+        sb.Append(@"
+}
+namespace xx {");
+        foreach (var c in cs) {
+            sb.GenCPP_TypeId(templateName, c);
+        }
+        sb.Append(@"
+}
+namespace " + templateName + @" {
+");
+
     }
+
 
     static void GenH_Enums(this StringBuilder sb, List<Type> ts) {
         var es = ts._GetEnums();
@@ -63,9 +94,10 @@ namespace " + e.Namespace.Replace(".", "::") + @" {");
     }
 
 
-    static void GenH_ClassPredefine(this StringBuilder sb, List<Type> cs, string templateName, Assembly asm) {
+    static void GenH_Structs(this StringBuilder sb, List<Type> cs, string templateName, Assembly asm) {
         for (int i = 0; i < cs.Count; ++i) {
             var c = cs[i];
+            if (!c._IsUserStruct()) continue;
             var o = asm.CreateInstance(c.FullName);
 
             if (c.Namespace != null && (i == 0 || (i > 0 && cs[i - 1].Namespace != c.Namespace))) // namespace 去重
@@ -74,9 +106,7 @@ namespace " + e.Namespace.Replace(".", "::") + @" {");
 namespace " + c.Namespace.Replace(".", "::") + @" {");
             }
 
-            if (c._IsUserStruct()) continue;
-            sb.Append(c._GetDesc()._GetComment_Cpp(4) + @"
-    struct " + c.Name + ";");
+            sb.GenH_Struct(c, templateName, o);
 
             if (c.Namespace != null && ((i < cs.Count - 1 && cs[i + 1].Namespace != c.Namespace) || i == cs.Count - 1)) {
                 sb.Append(@"
@@ -85,9 +115,10 @@ namespace " + c.Namespace.Replace(".", "::") + @" {");
         }
     }
 
-    static void GenH_ClassAndStruct(this StringBuilder sb, List<Type> cs, string templateName, Assembly asm) {
+    static void GenH_Classs(this StringBuilder sb, List<Type> cs, string templateName, Assembly asm) {
         for (int i = 0; i < cs.Count; ++i) {
             var c = cs[i];
+            if (c._IsUserStruct()) continue;
             var o = asm.CreateInstance(c.FullName);
 
             if (c.Namespace != null && (i == 0 || (i > 0 && cs[i - 1].Namespace != c.Namespace))) // namespace 去重
@@ -95,7 +126,6 @@ namespace " + c.Namespace.Replace(".", "::") + @" {");
                 sb.Append(@"
 namespace " + c.Namespace.Replace(".", "::") + @" {");
             }
-
 
             sb.GenH_Struct(c, templateName, o);
 
@@ -189,6 +219,10 @@ namespace xx {");
     }
 
 
+    static void GenH_Tail(this StringBuilder sb, string templateName) {
+        sb.Append(@"
+}");
+    }
 
 
 
@@ -490,27 +524,6 @@ namespace xx {");
         sb.Append(@"
     }");
     }
-    static void GenCPP_Clone(this StringBuilder sb, string templateName, Type c) {
-        if (!c._IsUserStruct()) return;
-        //       var ctn = c._GetTypeDecl_Cpp(templateName);
-        //       sb.Append(@"
-        //void StringFuncs<" + ctn + @", void>::Append(std::string& s, " + ctn + @" const& in) {
-        //       s.push_back('{');
-        //       AppendCore(s, in);
-        //       s.push_back('}');
-        //   }");
-    }
-
-    static void GenCPP_EqualsTo(this StringBuilder sb, string templateName, Type c) {
-        if (!c._IsUserStruct()) return;
-        //       var ctn = c._GetTypeDecl_Cpp(templateName);
-        //       sb.Append(@"
-        //void StringFuncs<" + ctn + @", void>::Append(std::string& s, " + ctn + @" const& in) {
-        //       s.push_back('{');
-        //       AppendCore(s, in);
-        //       s.push_back('}');
-        //   }");
-    }
 
     static void GenCPP_TypeId(this StringBuilder sb, string templateName, Type c) {
         if (c._IsUserStruct()) return;
@@ -541,13 +554,6 @@ namespace " + templateName + @" {
     }
 
     static void GenCPP_FuncImpls(this StringBuilder sb, string templateName, List<Type> cs) {
-        sb.Append(@"
-namespace xx {");
-        foreach (var c in cs) {
-            sb.GenCPP_TypeId(templateName, c);
-        }
-        sb.Append(@"
-}");
         GenCPP_Register(sb, templateName);
 
         sb.Append(@"
@@ -555,8 +561,6 @@ namespace xx {");
         foreach (var c in cs) {
             sb.GenCPP_Serialize(templateName, c);
             sb.GenCPP_Deserialize(templateName, c);
-            sb.GenCPP_Clone(templateName, c);
-            sb.GenCPP_EqualsTo(templateName, c);
             sb.GenCPP_ToString(templateName, c);
         }
         sb.Append(@"
@@ -616,9 +620,10 @@ namespace " + c.Namespace.Replace(".", "::") + @" {");
 
         // 生成 .h
         sb.GenH_Head(templateName);
-        sb.GenH_Enums(ts);
         sb.GenH_ClassPredefine(cs, templateName, asm);
-        sb.GenH_ClassAndStruct(cs, templateName, asm);
+        sb.GenH_Enums(ts);
+        sb.GenH_Structs(cs, templateName, asm);
+        sb.GenH_Classs(cs, templateName, asm);
         sb.GenH_Tail(templateName);
         sb.GenH_StructTemplates(cs, templateName);
         sb._WriteToFile(Path.Combine(outDir, templateName + "_class_lite.h"));

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 
 
@@ -60,48 +61,65 @@ public static class TypeHelpers {
     }
 
 
-    public class TypeParentCount : IComparable<TypeParentCount> {
-        public Type parent;
-        public int totalChildLevel;
+    public class TypeCount : IComparable<TypeCount> {
+        public Type type;
+        public int count;
 
-        public int CompareTo(TypeParentCount other) {
-            return -this.totalChildLevel.CompareTo(other.totalChildLevel);  // 从大到小倒排
+        public int CompareTo(TypeCount other) {
+            return -this.count.CompareTo(other.count);  // 从大到小倒排
+        }
+    }
+
+
+    /// <summary>
+    /// 递归获取 type 所有子 type( parent, fields, generic T... 都算 ) 填充到 types
+    /// </summary>
+    public static void FillChildStructTypes(this Type t, List<Type> types) {
+        if (t.IsGenericType) {
+            foreach (var ct in t.GetGenericArguments()) {
+                FillChildStructTypes(ct, types);
+            }
+        }
+        else {
+            if (t._HasBaseType()) {
+                FillChildStructTypes(t.BaseType, types);
+            }
+            if (t._IsUserClass() || t._IsUserStruct()) {
+                if (types.Contains(t)) return;
+                types.Add(t);
+                foreach (var f in t._GetFields()) {
+                    FillChildStructTypes(f.FieldType, types);
+                }
+            }
         }
     }
 
     /// <summary>
-    /// 根据继承关系排序, 父前子后( 便于 C++ 生成 )
+    /// 根据继承 & 成员引用关系排序, 被引用多的在前( 便于 C++ 生成 )
     /// </summary>
     public static List<Type> _SortByInheritRelation(this List<Type> ts) {
-        // 建一个 type,  parent + 后代层数  字典. 先扫父子关系并填充, 再扫一次算后代层数
-        // 最后类型根据后代层数倒排( 层数高的在前 )
 
-        var dict = new Dictionary<Type, TypeParentCount>();
+        var typeCounts = new Dictionary<Type, int>();
         foreach (var t in ts) {
-            dict.Add(t, new TypeParentCount { parent = t._HasBaseType() ? t.BaseType : null });
+            typeCounts.Add(t, 0);
         }
-        foreach (var t in ts) {
-            var parent = dict[t].parent;
-            while (parent != null) {
-                dict[parent].totalChildLevel++;
-                parent = dict[parent].parent;
-            }
 
-            foreach (var f in t._GetFields()) {
-                var ft = f.FieldType;
-                if (ft._IsUserStruct()) {
-                    dict[ft].totalChildLevel++;
-                }
+        foreach (var t in ts) {
+            var types = new List<Type>();
+            FillChildStructTypes(t, types);
+            foreach(var type in types) {
+                typeCounts[type]++;
             }
         }
-        var list = new List<TypeParentCount>();
-        foreach (var t in ts) {
-            list.Add(new TypeParentCount { parent = t, totalChildLevel = dict[t].totalChildLevel });
-        }
 
+        var list = new List<TypeCount>();
+        foreach (var t in ts) {
+            list.Add(new TypeCount { type = t, count = typeCounts[t] });
+        }
         list.Sort();
+
         ts.Clear();
-        ts.AddRange(list.Select(a => a.parent));
+        ts.AddRange(list.Select(a => a.type));
         return ts;
     }
 
@@ -209,10 +227,10 @@ public static class TypeHelpers {
     }
 
     /// <summary>
-    /// 返回泛型第一个类型
+    /// 返回泛型第 index 个子类型
     /// </summary>
-    public static Type _GetChildType(this Type t) {
-        return t.GenericTypeArguments[0];
+    public static Type _GetChildType(this Type t, int index = 0) {
+        return t.GenericTypeArguments[index];
     }
 
     /// <summary>
@@ -597,7 +615,7 @@ public static class TypeHelpers {
                 else if (t.Name == "List`1") {
                     return "xx.List<" + _GetTypeDecl_Csharp(t.GenericTypeArguments[0]) + ">";
                 }
-                else if(t.Name == "Dict`2") {
+                else if (t.Name == "Dict`2") {
                     return "xx.Dict<" + @"<" + t.GenericTypeArguments[0]._GetTypeDecl_Csharp() + ", " + t.GenericTypeArguments[1]._GetTypeDecl_Csharp() + ">";
                 }
                 else if (t.Name == "DateTime") {
@@ -783,7 +801,7 @@ public static class TypeHelpers {
                             return "std::vector" + @"<" + ct._GetTypeDecl_Cpp(templateName) + ">";
                         }
                     case "Dict`2": {
-                            return "std::map" + @"<" + t.GenericTypeArguments[0]._GetTypeDecl_Cpp(templateName) + ", "+ t.GenericTypeArguments[1]._GetTypeDecl_Cpp(templateName) + ">";
+                            return "std::map" + @"<" + t.GenericTypeArguments[0]._GetTypeDecl_Cpp(templateName) + ", " + t.GenericTypeArguments[1]._GetTypeDecl_Cpp(templateName) + ">";
                         }
                     case "Data":
                         return "xx::Data";
