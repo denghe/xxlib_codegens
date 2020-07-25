@@ -107,7 +107,7 @@ public static class TypeHelpers {
         foreach (var t in ts) {
             var types = new List<Type>();
             FillChildStructTypes(t, types);
-            foreach(var type in types) {
+            foreach (var type in types) {
                 typeCounts[type]++;
             }
         }
@@ -618,6 +618,9 @@ public static class TypeHelpers {
                 else if (t.Name == "Dict`2") {
                     return "xx.Dict<" + @"<" + t.GenericTypeArguments[0]._GetTypeDecl_Csharp() + ", " + t.GenericTypeArguments[1]._GetTypeDecl_Csharp() + ">";
                 }
+                else if (t.Name == "Pair`2") {
+                    return "xx.Pair<" + @"<" + t.GenericTypeArguments[0]._GetTypeDecl_Csharp() + ", " + t.GenericTypeArguments[1]._GetTypeDecl_Csharp() + ">";
+                }
                 else if (t.Name == "DateTime") {
                     return "DateTime";
                 }
@@ -706,6 +709,12 @@ public static class TypeHelpers {
                 }
                 else if (t.Name == "List`1") {
                     return "std::vector<" + _GetTypeDecl_CsharpForDisplayCppType(t.GenericTypeArguments[0]) + ">";
+                }
+                else if (t.Name == "Dict`2") {
+                    return "std::map<" + _GetTypeDecl_CsharpForDisplayCppType(t.GenericTypeArguments[0]) + ", " + _GetTypeDecl_CsharpForDisplayCppType(t.GenericTypeArguments[1]) + ">";
+                }
+                else if (t.Name == "Pair`2") {
+                    return "std::pair<" + _GetTypeDecl_CsharpForDisplayCppType(t.GenericTypeArguments[0]) + ", " + _GetTypeDecl_CsharpForDisplayCppType(t.GenericTypeArguments[1]) + ">";
                 }
                 //else if (t.Name == "DateTime") {
                 //    return "DateTime";
@@ -802,6 +811,9 @@ public static class TypeHelpers {
                         }
                     case "Dict`2": {
                             return "std::map" + @"<" + t.GenericTypeArguments[0]._GetTypeDecl_Cpp(templateName) + ", " + t.GenericTypeArguments[1]._GetTypeDecl_Cpp(templateName) + ">";
+                        }
+                    case "Pair`2": {
+                            return "std::pair" + @"<" + t.GenericTypeArguments[0]._GetTypeDecl_Cpp(templateName) + ", " + t.GenericTypeArguments[1]._GetTypeDecl_Cpp(templateName) + ">";
                         }
                     case "Data":
                         return "xx::Data";

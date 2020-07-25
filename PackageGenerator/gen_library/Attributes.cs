@@ -1,7 +1,7 @@
 ﻿// 全是 Attribute
 namespace TemplateLibrary {
     /// <summary>
-    /// 对应 c# Nullable<>, c++ std::optional, lua variable
+    /// 对应 c++ std::optional, c# Nullable<>, lua variable
     /// </summary>
     public class Nullable<T> { }
 
@@ -11,25 +11,30 @@ namespace TemplateLibrary {
     public class List<T> { }
 
     /// <summary>
-    /// 标记一个类不继承自 xx::Object ( cpp only )
+    /// 标记一个类不继承自 xx::Object
     /// </summary>
     [System.AttributeUsage(System.AttributeTargets.Class)]
     public class Struct : System.Attribute { }
 
     /// <summary>
-    /// 标记生成为 std::weak_ptr ( cpp only )
+    /// 对应 c++ std::weak_ptr, c# Weak/Property, lua ???
     /// </summary>
     public class Weak<T> { }
 
     /// <summary>
-    /// 标记生成为 std::shared_ptr ( cpp only )
+    /// 对应 c++ std::shared_ptr, c# Shared/Property, lua ???
     /// </summary>
     public class Shared<T> { }
 
     /// <summary>
-    /// 对应 c++ std::map, c# 暂定对应 Dict( 应该对应有序版字典 ). lua table( 情况未知 )
+    /// 对应 c++ std::map, c# 暂定对应 Dict( 应该对应有序版字典 ). lua table ???
     /// </summary>
     public class Dict<K, V> { }
+
+    /// <summary>
+    /// 对应 c++ std::pair, c# 暂定对应 Dict( 应该对应有序版字典 ). lua table ???
+    /// </summary>
+    public class Pair<K, V> { }
 
 
 
