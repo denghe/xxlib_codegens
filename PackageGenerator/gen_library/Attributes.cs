@@ -36,6 +36,7 @@ namespace TemplateLibrary {
     /// </summary>
     public class Pair<K, V> { }
 
+    // todo: tuple ?
 
 
     /// <summary>
@@ -82,6 +83,13 @@ namespace TemplateLibrary {
 
 
 
+
+    /// <summary>
+    /// 标记一个类含有 virtual xxxxxx = 0 的纯虚函数, 这将导致不会生成 Register TypeId 代码  ( cpp only )
+    /// </summary>
+    [System.AttributeUsage(System.AttributeTargets.Class | System.AttributeTargets.Struct)]
+    public class Virtual : System.Attribute {
+    }
 
     /// <summary>
     /// 标记一个类需要抠洞在声明和实现部分分别嵌入 namespace_classname.h , .hpp ( cpp only )

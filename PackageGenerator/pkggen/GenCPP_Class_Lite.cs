@@ -529,8 +529,10 @@ namespace xx {");
         if (c._IsUserStruct()) return;
         var ctn = c._GetTypeDecl_Cpp(templateName);
         var typeId = c._GetTypeId();
-        sb.Append(@"
+        if (typeId.HasValue) {
+            sb.Append(@"
     template<> struct TypeId<" + ctn + @"> { static const uint16_t value = " + typeId + @"; };");
+        }
     }
 
     static void GenCPP_Register(this StringBuilder sb, string templateName) {
@@ -539,8 +541,10 @@ namespace " + templateName + @" {
 	void PkgGenTypes::RegisterTo(xx::ObjectHelper& oh) {");
         foreach (var kv in typeIdMappings) {
             var ctn = kv.Value._GetTypeDecl_Cpp(templateName);
-            sb.Append(@"
+            if (!kv.Value._Has<TemplateLibrary.Virtual>()) {
+                sb.Append(@"
 	    oh.Register<" + ctn + @">();");
+            }
         }
         sb.Append(@"
 	}
@@ -596,13 +600,36 @@ namespace " + c.Namespace.Replace(".", "::") + @" {");
 
 
 
+    static void GenH_AJSON(this StringBuilder sb, Type c) {
+        if (c._HasBaseType()) {
+            GenH_AJSON(sb, c.BaseType);
+        }
+        var fs = c._GetFields();
+        foreach (var f in fs) {
+            sb.Append(", " + f.Name);
+        }
+    }
+
+    static void GenH_AJSON(this StringBuilder sb, string templateName, List<Type> cs) {
+        sb.Append(@"#pragma once");
+        foreach (var c in cs) {
+            if (!c._IsUserStruct()) continue;
+            sb.Append(@"
+AJSON(" + templateName + "::" + c.Name);
+            GenH_AJSON(sb, c);
+            sb.Append(");");
+        }
+        sb.Append(@"
+");
+    }
+
     public static void Gen(Assembly asm, string outDir, string templateName) {
         var ts = asm._GetTypes();
 
         // 填充 typeId for class
         foreach (var c in ts._GetClasss().Where(o => !o._Has<TemplateLibrary.Struct>())) {
             var id = c._GetTypeId();
-            if (id == null) throw new Exception("type: " + c.FullName + " miss [TypeId(xxxxxx)]");
+            if (id == null) { }// throw new Exception("type: " + c.FullName + " miss [TypeId(xxxxxx)]");
             else {
                 if (typeIdMappings.ContainsKey(id.Value)) {
                     throw new Exception("type: " + c.FullName + "'s typeId is duplicated with " + typeIdMappings[id.Value].FullName);
@@ -631,5 +658,8 @@ namespace " + c.Namespace.Replace(".", "::") + @" {");
         sb.GenCPP_Includes(templateName);
         sb.GenCPP_FuncImpls(templateName, cs);
         sb._WriteToFile(Path.Combine(outDir, templateName + "_class_lite.cpp"));
+        sb.Clear();
+        sb.GenH_AJSON(templateName, cs);
+        sb._WriteToFile(Path.Combine(outDir, templateName + "_class_lite.ajson.h"));
     }
 }
